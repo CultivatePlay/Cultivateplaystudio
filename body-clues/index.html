@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Body Clues "coming soon" page. When the app launches, replace this page with the app (like /scribble-sprouts/). -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Body Clues: Coming Soon | Cultivate Play Studio</title>
+<meta name="description" content="Body Clues is an interoception app by Cultivate Play Studio. It helps kids, teens and adults notice what their body is telling them, wonder what it might mean and find what helps. Coming soon.">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#2E5AAE">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Cultivate Play Studio">
+<meta property="og:title" content="Body Clues: an interoception app, coming soon">
+<meta property="og:description" content="Notice it. Wonder about it. Find what helps. An interoception app by Cultivate Play Studio for kids, teens and adults.">
+<meta property="og:url" content="https://cultivateplaystudio.com/body-clues/">
+<meta property="og:image" content="https://cultivateplaystudio.com/body-clues/wonder.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gluten:wght@700;800&family=Andika:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: the studio's construction-paper board. Each part of the page is a taped-up sheet; Body Clues brings its own
+   mint, tangerine and lavender paper colors onto the board. */
+:root{--board:#2E5AAE;--board-ink:#FFFFFF;--sheet:#FFFFFF;--ink:#1D2333;--muted:#5D667A;--tape:rgba(238,226,178,.9);--shadow:rgba(8,22,58,.32);
+  --mint:#D7E8DC;--green:#0B7A46;--green-ink:#FFFFFF;--tang:#E8642A;--lav:#6F68C9;--lav-soft:#E7E5FB;--peach:#FFE7D6;--butter:#FFD35C;--stamp:#E2483C;
+  --font-display:"Gluten","Chalkboard SE","Comic Sans MS",cursive;--font-body:"Andika","Trebuchet MS",system-ui,sans-serif;color-scheme:light}
+@media (prefers-color-scheme: dark){:root{--board:#1C2925;--board-ink:#E6EEE9;--sheet:#283230;--ink:#ECF0EE;--muted:#A3AFAA;--tape:rgba(214,202,152,.34);--shadow:rgba(0,0,0,.5);
+  --mint:#20352A;--green:#5FC48E;--green-ink:#0C2216;--tang:#FF8A52;--lav:#A9A3F0;--lav-soft:#2D2B4C;--peach:#41291F;--butter:#F5C64A;--stamp:#FF7A66;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--board);color:var(--board-ink);font:18px/1.55 var(--font-body);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.wrap{max-width:1000px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:44px}
+a{color:inherit}
+h1,h2,h3{font-family:var(--font-display);margin:0;line-height:1.05;text-wrap:balance}
+.back{font-weight:700;text-decoration:none;opacity:.9;align-self:flex-start}
+.back:hover{text-decoration:underline}
+:focus-visible{outline:3px solid #F2B705;outline-offset:4px}
+
+/* taped paper sheet */
+.sheet{position:relative;background:var(--sheet);color:var(--ink);border-radius:3px;box-shadow:0 16px 26px -16px var(--shadow);padding:clamp(20px,4vw,40px)}
+.sheet::before{content:"";position:absolute;top:-12px;left:50%;width:104px;height:26px;translate:-50% 0;rotate:-2.5deg;background:var(--tape);
+  clip-path:polygon(3% 0,97% 0,100% 22%,96% 48%,100% 74%,97% 100%,3% 100%,0 76%,4% 50%,0 24%)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:32px;align-items:center;rotate:-.6deg}
+.hero .who{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.hero .who img{width:76px;height:76px;flex:none}
+.hero h1{font-size:clamp(2.6rem,7vw,4.2rem);font-weight:800;color:var(--green)}
+.by{margin:6px 0 0;color:var(--muted);font-weight:700;font-size:1rem}
+.tagline{display:flex;flex-wrap:wrap;gap:6px 12px;margin:18px 0 14px;font-family:var(--font-display);font-weight:800;font-size:clamp(1.35rem,3.4vw,1.75rem);line-height:1.2}
+.tagline span:nth-child(1){color:var(--green)}
+.tagline span:nth-child(2){color:var(--tang)}
+.tagline span:nth-child(3){color:var(--ink);background:var(--lav-soft);padding:0 10px;border-radius:10px 14px 9px 13px;rotate:-1.5deg}
+.hero p.lede{margin:0 0 22px;max-width:52ch}
+.btn{display:inline-block;background:var(--green);color:var(--green-ink);font-weight:700;text-decoration:none;border-radius:12px;padding:12px 20px;box-shadow:0 5px 0 rgba(0,0,0,.2)}
+.btn:hover{translate:0 -2px}
+.note{margin:12px 0 0;color:var(--muted);font-size:.9rem}
+.stamp{position:absolute;top:18px;right:18px;rotate:9deg;border:3px solid var(--stamp);color:var(--stamp);border-radius:10px;padding:2px 12px;font-family:var(--font-display);font-weight:800;font-size:1.15rem;letter-spacing:.04em;text-transform:uppercase}
+.hero .shot{justify-self:center}
+
+/* phone screenshots */
+.phone{width:100%;max-width:250px;background:#1B1918;padding:7px;border-radius:38px;box-shadow:0 20px 34px -20px var(--shadow)}
+.phone img{display:block;width:100%;height:auto;border-radius:31px}
+
+/* steps */
+.section-head{display:flex;flex-direction:column;gap:8px;text-align:center;align-items:center}
+.section-head h2{font-size:clamp(2rem,5vw,2.8rem);font-weight:800;rotate:-1deg}
+.section-head p{margin:0;max-width:56ch;opacity:.92}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:40px 24px;list-style:none;margin:0;padding:0}
+.steps li{display:flex;flex-direction:column;align-items:center;gap:18px}
+.steps .sheet{width:100%;text-align:center;padding:22px 20px}
+.steps li:nth-child(1) .sheet{rotate:-1.2deg}
+.steps li:nth-child(2) .sheet{rotate:.8deg}
+.steps li:nth-child(3) .sheet{rotate:-.6deg}
+.steps h3{font-size:1.7rem;font-weight:800}
+.steps li:nth-child(1) h3{color:var(--green)}
+.steps li:nth-child(2) h3{color:var(--tang)}
+.steps li:nth-child(3) h3{color:var(--lav)}
+.steps p{margin:8px 0 0;color:var(--muted);font-size:1rem}
+
+/* what's inside */
+.inside h2{font-size:clamp(1.9rem,4.5vw,2.5rem);font-weight:800;color:var(--green);margin-bottom:22px}
+.feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:16px;margin:0;padding:0;list-style:none}
+.feat li{background:var(--mint);border-radius:16px 20px 14px 22px;padding:16px 18px}
+.feat li:nth-child(3n+2){background:var(--peach)}
+.feat li:nth-child(3n+3){background:var(--lav-soft)}
+.feat b{display:block;font-family:var(--font-display);font-weight:700;font-size:1.25rem;line-height:1.15;margin-bottom:4px}
+.feat span{color:var(--muted);font-size:.98rem}
+
+.approach{rotate:.5deg;max-width:760px;margin:0 auto;width:100%}
+.approach h2{font-size:clamp(1.8rem,4.5vw,2.4rem);font-weight:800;color:var(--tang);margin-bottom:12px}
+.approach p{margin:0}
+
+/* faq */
+.faq h2{font-size:clamp(1.8rem,4.5vw,2.4rem);font-weight:800;margin-bottom:16px;color:var(--green)}
+details{border-top:2px dashed color-mix(in srgb,var(--muted) 35%,transparent);padding:14px 0}
+details:last-child{border-bottom:2px dashed color-mix(in srgb,var(--muted) 35%,transparent)}
+summary{cursor:pointer;font-weight:700;font-size:1.05rem;list-style-position:outside}
+details p{margin:8px 0 0;color:var(--muted)}
+
+footer{font-size:.9rem;opacity:.85}
+footer a{font-weight:700}
+@media (max-width:760px){.hero{grid-template-columns:1fr;rotate:0deg}.stamp{position:static;display:inline-block;margin:0 0 14px;rotate:-3deg}}
+@media (prefers-reduced-motion:reduce){.btn:hover{translate:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">&larr; All Cultivate Play Studio apps</a>
+
+  <section class="sheet hero" aria-labelledby="title">
+    <span class="stamp">Coming soon</span>
+    <div>
+      <div class="who">
+        <img src="icon-192.png" alt="" width="76" height="76">
+        <div>
+          <h1 id="title">Body Clues</h1>
+          <p class="by">An interoception app by Cultivate Play Studio</p>
+        </div>
+      </div>
+      <p class="tagline"><span>Notice it.</span><span>Wonder about it.</span><span>Find what helps.</span></p>
+      <p class="lede">A personalized way to notice what your body is telling you, figure out what it might mean, and keep track of what helps. Made by pediatric therapists for kids, teens and adults, for families at home and for therapists to use in sessions.</p>
+      <a class="btn" href="mailto:info@cultivate-play.com?subject=Tell%20me%20when%20Body%20Clues%20launches">Email me when it launches</a>
+      <p class="note">Or write to info@cultivate-play.com.</p>
+    </div>
+    <div class="shot phone"><img src="welcome.jpg" width="390" height="844" alt="The Body Clues welcome screen with the tagline Notice it, Wonder about it, Find what helps"></div>
+  </section>
+
+  <section aria-labelledby="how">
+    <div class="section-head">
+      <h2 id="how">How it works</h2>
+      <p>Each check-in takes about a minute. There are no right answers and nothing to keep up with.</p>
+    </div>
+    <ol class="steps" style="margin-top:36px">
+      <li>
+        <div class="phone"><img src="notice.jpg" width="390" height="844" loading="lazy" alt="Choosing the tummy and heart as the places a body clue is coming from"></div>
+        <div class="sheet"><h3>Notice it.</h3><p>Tap the parts of the body that are sending a clue, then pick what it feels like: butterflies, a fast heart, wiggly legs, or something in your own words.</p></div>
+      </li>
+      <li>
+        <div class="phone"><img src="wonder.jpg" width="390" height="844" loading="lazy" alt="Body Clues suggesting that butterflies and a fast heart together have meant worried three times before"></div>
+        <div class="sheet"><h3>Wonder about it.</h3><p>Body Clues remembers past check-ins and gently suggests what a clue has meant before. "Not sure yet" is always a great answer.</p></div>
+      </li>
+      <li>
+        <div class="phone"><img src="helps.jpg" width="390" height="844" loading="lazy" alt="A What helps my body toolkit listing strategies for each body clue"></div>
+        <div class="sheet"><h3>Find what helps.</h3><p>Try a strategy and say whether it helped. Over time it builds a personal "What helps my body" toolkit to share with family and teachers.</p></div>
+      </li>
+    </ol>
+  </section>
+
+  <section class="sheet inside" aria-labelledby="inside">
+    <h2 id="inside">What's inside</h2>
+    <ul class="feat">
+      <li><b>Pictures or words</b><span>Picture tiles and simple words for kids, or clear everyday wording for teens and adults. Every screen can be read aloud.</span></li>
+      <li><b>Patterns over time</b><span>See which feelings and needs each body clue has been linked to, which clues show up together, and when and where they tend to happen.</span></li>
+      <li><b>A summary for the care team</b><span>Make a PDF of patterns to share with a therapist, teacher or doctor, only when your family chooses.</span></li>
+      <li><b>Profiles for the whole family</b><span>Each person gets their own check-ins and settings. A passcode lock keeps a child's settings the way you set them.</span></li>
+      <li><b>Motivation without pressure</b><span>Badges for exploring, discoveries and a friendly paper buddy. No streaks, nothing taken away, no rewards for "calm" answers.</span></li>
+      <li><b>Made to include everyone</b><span>A body picture with different hair styles and mobility aids, and body clues that glow without assuming a skin color.</span></li>
+    </ul>
+  </section>
+
+  <section class="sheet approach" aria-labelledby="approach">
+    <h2 id="approach">Curiosity, not compliance</h2>
+    <p>Body Clues treats every sensation as information worth exploring, never as a problem to fix or a behavior to correct. It's neurodiversity-affirming, follows each person's lead, and celebrates noticing, including "not sure yet" and "it's okay just as it is."</p>
+  </section>
+
+  <section class="sheet faq" aria-labelledby="faq">
+    <h2 id="faq">Questions</h2>
+    <details><summary>When will Body Clues be available?</summary><p>We're finishing Body Clues now. Email info@cultivate-play.com and we'll let you know as soon as it's ready.</p></details>
+    <details><summary>What is interoception?</summary><p>Interoception is the sense that tells us what's happening inside our bodies, like hunger, a racing heart, needing the bathroom or feeling tired. Noticing these signals helps us understand our emotions and needs and figure out what helps.</p></details>
+    <details><summary>Who is Body Clues for?</summary><p>Kids, teens and adults, including neurodivergent people who are still learning to read their body's signals. Parents, therapists and teachers can set it up for someone they support, or use it alongside them.</p></details>
+    <details><summary>Where is my family's information kept?</summary><p>Check-ins are saved on your family's own device, not on our servers. You can save a backup file to move them to another phone or tablet, and a care team summary is only shared when you choose to send it.</p></details>
+    <details><summary>Does Body Clues replace therapy?</summary><p>No. Body Clues is a tool for noticing and learning, not a diagnosis or a substitute for therapy. Many families find it helpful to bring their patterns to sessions with their occupational therapist, speech therapist or counselor.</p></details>
+  </section>
+
+  <footer>Made by Cultivate Play Studio. Created by the therapists at <a href="https://cultivate-play.com/" target="_blank" rel="noopener">Cultivate Play Pediatric Therapy</a> in Murfreesboro, Tennessee.</footer>
+</div>
+</body>
+</html>
