@@ -1409,13 +1409,24 @@ function ac(){
   /* iPad Safari can quietly cut a page's sound after a short time while still reporting it as running.
      A refresh fixes it because the page gets new audio, so do the same thing here: on a tap, if the audio is
      more than a few seconds old and nothing is playing, replace it with a fresh one. */
-  if(AC&&now-AC._born>8000&&now>AC._busy){try{AC.close()}catch(e){}AC=null}
+  if(AC&&inGesture&&now-AC._born>8000&&now>AC._busy){try{AC.close()}catch(e){}AC=null}
   if(!AC){try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}AC=new ACtx();AC._born=now;AC._busy=0;NOISE=null}
   if(AC.state!=='running'){const c=AC;c.resume().then(()=>{c._bad=0}).catch(()=>{})}else AC._bad=0;
   return AC;
 }
-function wakeAudio(){if(!S.settings.sound||!ACtx)return;try{const c=ac(),b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0)}catch(e){}}
-addEventListener('pointerdown',wakeAudio,true);addEventListener('touchend',wakeAudio,true);
+/* Phones and many iPads only unlock sound on the END of a tap (touchend / click), not when the finger goes down,
+   and they mute web-app sound when the ring/silent switch is on. Two fixes:
+   1. unlock and refresh the audio only during those tap-end events;
+   2. play a tiny silent clip through a normal <audio> element, which tells iOS this is media playback,
+      so the Web Audio sounds play even with the silent switch on (the same trick music and video sites use). */
+let inGesture=false,SILENT=null;
+function silentClip(){if(SILENT)return SILENT;const n=2205,buf=new ArrayBuffer(44+n*2),v=new DataView(buf),w=(o,t)=>[...t].forEach((c,i)=>v.setUint8(o+i,c.charCodeAt(0)));
+  w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,22050,true);v.setUint32(28,44100,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*2,true);
+  const a=document.createElement('audio');a.setAttribute('playsinline','');a.setAttribute('x-webkit-airplay','deny');a.preload='auto';a.loop=false;a.src=URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));return SILENT=a}
+function wakeAudio(){if(!S.settings.sound||!ACtx)return;inGesture=true;setTimeout(()=>inGesture=false,0);
+  try{const a=silentClip();if(a.paused){a.currentTime=0;const pr=a.play();if(pr)pr.catch(()=>{})}}catch(e){}
+  try{const c=ac(),b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0)}catch(e){}}
+['pointerup','touchend','click','keydown'].forEach(ev=>addEventListener(ev,wakeAudio,true));
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&AC&&AC.state!=='running')AC._bad=1});
 function busy(t){if(AC)AC._busy=Math.max(AC._busy||0,performance.now()+t*1000+150)}
 function tone(f,at,dur,type,vol,to){busy(at+dur);const c=AC,o=c.createOscillator(),g=c.createGain(),t=c.currentTime+.02+at;o.type=type;o.frequency.setValueAtTime(f,t);if(to)o.frequency.exponentialRampToValueAtTime(to,t+dur);
@@ -1740,7 +1751,7 @@ function renderSettings(){
   $('optSound').onchange=e=>{S.settings.sound=e.target.checked;save()};
   $('sndTest').onclick=()=>{if(!S.settings.sound){$('sndMsg').textContent='Sounds are off. Tick Sounds first.';return}
     if(AC&&AC.state!=='running')AC._bad=1;sound('win','flag');$('sndMsg').textContent='Playing a ta-da…';
-    setTimeout(()=>{const st=AC?AC.state:'none';$('sndMsg').textContent=st==='running'?'Sound is on. No sound? Check the volume, Silent mode and Bluetooth speakers.':'The device paused sound. Tap Test sound once more.'},500)};
+    setTimeout(()=>{const st=AC?AC.state:'none';$('sndMsg').textContent=st==='running'?'Sound is on. Still silent? Turn the volume up with the side buttons, and on an iPhone flip the ring/silent switch so no orange shows. Also check for Bluetooth headphones.':'The device paused sound. Tap Test sound once more.'},500)};
   $('optGhost').onchange=e=>{S.settings.ghost=e.target.checked;save()};
   $('optDemo').onchange=e=>{S.settings.demo=e.target.checked;save()};
   $('renameBtn').onclick=()=>{const n=$('renameIn').value.trim();if(!n)return;kid.name=n;save();renderTop();renderSettings()};
