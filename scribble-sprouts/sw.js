@@ -1,7 +1,7 @@
 /* Scribble Sprouts offline support.
    App files: network first, so updates show up right away when online; cached copy when offline.
    Google Fonts: cache first, since those files never change. */
-const CACHE = 'scribble-sprouts-v1';
+const CACHE = 'scribble-sprouts-v2';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
