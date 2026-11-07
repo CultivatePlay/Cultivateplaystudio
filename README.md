@@ -4,6 +4,7 @@ Apps from Cultivate Play Pediatric Therapy, served by GitHub Pages.
 
 - `/` → `index.html`, the list of apps
 - `/scribble-sprouts/` → Scribble Sprouts prewriting app (installable, works offline)
+- `/body-clues/` → Body Clues interoception app, "coming soon" page for now (`body-clues/index.html`)
 
 ## Updating Scribble Sprouts
 Edit `scribble-sprouts/index.html`. The feedback form link is `FEEDBACK_URL` near the
