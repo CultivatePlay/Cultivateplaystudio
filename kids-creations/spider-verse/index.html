@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dr. Alyssa's Spider Verse</title>
+<meta name="description" content="A spooky shifting game from Kids' Creations at Cultivate Play Studio. Pick a shifting method and survive 365 nights in the Spider Verse.">
+<meta name="theme-color" content="#1a0507">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<style>body{margin:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+</head>
+<body>
+<a class="backlink" href="../">&larr; Kids' Creations</a>
+<style>
+/* Layout: one-column game — HUD + three meters, illustrated stage, story card with picture-cards for tonight's options, then housemates, stuff, diary. Single dark world: it's always night. */
+:root{
+  --sky:#1a0507; --ink:#f4e9e4; --dim:#c9aaa4;
+  --marker:#3fbf5a; --blood:#e2483d; --card:#25090c; --line:#5c1a1f; --gold:#ffd23f; --fear:#a77bff;
+  --display:"Permanent Marker","Comic Sans MS",cursive;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+body{background:var(--sky);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;overflow-x:hidden;
+  background-image:radial-gradient(ellipse at 50% 120%,#5a1016 0%,transparent 60%)}
+.wrap{max-width:640px;margin:0 auto;padding-block:54px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:12px}
+h1{font-family:var(--display);color:var(--marker);font-weight:400;font-size:clamp(28px,7vw,42px);line-height:1.05;margin:0;text-wrap:balance;transform:rotate(-1.5deg)}
+.flick{animation:flick 6s infinite}
+@keyframes flick{0%,18%,20.5%,23%,61%,63%,100%{opacity:1}19%,22%,62%{opacity:.3}}
+.sub{color:var(--dim);margin:0;font-size:14px}
+.warn{color:var(--blood);margin:0;font-size:14px;font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.rules{margin:0;padding-left:1.4em;display:grid;gap:3px;font-size:15px}
+.rules li::marker{font-family:var(--display);color:var(--marker)}
+button{font:inherit;cursor:pointer;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);padding:11px 14px;text-align:left;transition:transform .12s,border-color .12s,background .12s}
+button:hover{border-color:var(--blood)}
+button:active{transform:scale(.97)}
+button:focus-visible{outline:3px solid var(--marker);outline-offset:2px}
+.big{font-family:var(--display);font-size:22px;text-align:center;background:var(--marker);color:#0d1f10;border-color:var(--marker);width:100%}
+.big:hover{border-color:var(--ink)}
+.big.danger{background:var(--blood);border-color:var(--blood);color:#1a0507}
+.ghost{text-align:center;width:100%}
+.confirm{display:flex;flex-direction:column;gap:10px;border-color:var(--blood)}
+.confirm p{margin:0}
+.confirm .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.confirm .row button{text-align:center}
+.stage{border-radius:16px;overflow:hidden;border:2px solid var(--line);line-height:0;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.stage svg{width:100%;height:auto;display:block}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-variant-numeric:tabular-nums}
+.hud div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px;text-align:center}
+.hud b{display:block;font-size:19px}
+.hud span{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+.meters{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mlab{display:flex;justify-content:space-between;gap:4px;font-size:12px;color:var(--dim);margin-bottom:4px;flex-wrap:wrap}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;transition:width .4s}
+#hungerBar{background:var(--gold)}
+#stinkBar{background:linear-gradient(90deg,#8a6a2a,#6b8a2a)}
+#fearBar{background:var(--fear)}
+.forecast{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-size:14px;color:var(--dim)}
+.forecast b{font-family:var(--display);font-weight:400;color:var(--gold);font-size:16px}
+.story .where{font-family:var(--display);color:var(--marker);font-size:21px;margin:0 0 4px;line-height:1.2}
+.story p{margin:0}
+.story .day{font-family:var(--display);color:var(--blood);font-size:14px;margin-bottom:2px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.choices>button{display:flex;align-items:center;gap:10px;font-weight:700;min-width:0}
+.ci{flex:none;width:28px;height:28px;color:var(--marker)}
+.ci svg{width:100%;height:100%;display:block}
+.choices.events{grid-template-columns:1fr}
+.evbtn{display:grid!important;grid-template-columns:minmax(110px,42%) 1fr;gap:12px;align-items:center;padding:8px!important}
+.evbtn .th{border-radius:9px;overflow:hidden;line-height:0;border:1px solid var(--line)}
+.evbtn .th svg{width:100%;height:auto;display:block}
+.evbtn .tx{display:flex;flex-direction:column;gap:4px;min-width:0}
+.evbtn b{font-family:var(--display);font-weight:400;font-size:18px;color:var(--ink);line-height:1.15}
+.evbtn small{color:var(--dim);font-size:13px;font-weight:400}
+.tag{display:inline-block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:1px 8px;border-radius:99px;margin:0 4px 2px 0;border:1px solid currentColor;font-weight:700}
+.tag.story{color:var(--marker)} .tag.special{color:var(--gold)} .tag.urgent{color:var(--blood)} .tag.game{color:#6bc4ff} .tag.scary{color:var(--fear)}
+.badges{display:flex;flex-wrap:wrap;gap:6px}
+.badge{font-size:12.5px;padding:3px 10px;border-radius:99px;border:1px solid var(--marker);color:var(--marker)}
+.badge.off{border-color:var(--line);color:#7d5a55}
+.badge.mate{border-color:var(--gold);color:var(--gold)}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 0 6px}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+summary{cursor:pointer;font-weight:700}
+.diary{margin:8px 0 0;padding:0;list-style:none;display:grid;gap:4px;font-size:14px;max-height:220px;overflow:auto}
+.diary span{font-family:var(--display);color:var(--blood);margin-right:6px}
+.flash{position:fixed;inset:0;z-index:5;background:var(--blood);pointer-events:none;opacity:0}
+.flash.go{animation:flash 1.2s ease-out}
+@keyframes flash{0%{opacity:0}20%{opacity:.9}100%{opacity:0}}
+.dark{position:fixed;inset:0;z-index:8;background:#000;display:flex;align-items:center;justify-content:center;text-align:center;
+  padding:env(safe-area-inset-top,0px) max(16px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(16px,env(safe-area-inset-left,0px))}
+.dark{flex-direction:column;gap:14px}
+.dsub{color:var(--dim);font-size:16px;max-width:30ch}
+.dsub:empty{display:none}
+.dhint{position:absolute;bottom:calc(18px + env(safe-area-inset-bottom,0px));left:0;right:0;color:#7d5a55;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.methods{display:flex;flex-direction:column;gap:10px}
+.mhead{font-family:var(--display);color:var(--marker);font-size:20px;margin:0;line-height:1.2}
+.method{display:flex;gap:12px;align-items:center}
+.method .tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.method b{font-family:var(--display);font-weight:400;font-size:18px}
+.method small{color:var(--dim);font-size:13.5px}
+.steps{margin:0;padding-left:1.4em;display:grid;gap:3px}
+.steps li::marker{font-family:var(--display);color:var(--marker)}
+.dark p{font-family:var(--display);color:var(--blood);font-size:clamp(28px,9vw,56px);margin:0;animation:pulse 1s ease-in-out infinite alternate}
+@keyframes pulse{from{opacity:.45;transform:scale(.97)}to{opacity:1;transform:scale(1.03)}}
+.sound{position:fixed;z-index:7;top:calc(10px + env(safe-area-inset-top,0px));right:calc(10px + env(safe-area-inset-right,0px));
+  font-size:13px;padding:6px 12px;border-radius:99px;background:var(--card);opacity:.9}
+.sound[aria-pressed="true"]{border-color:var(--fear);color:var(--fear)}
+
+.backlink{position:absolute;z-index:6;top:calc(14px + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));color:var(--dim);font-size:13px;text-decoration:none}
+.backlink:hover{color:var(--ink)}
+.lv{margin-left:auto;color:var(--fear);font-weight:700;font-size:13px}
+.vh{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.mirrorcard{display:flex;flex-direction:column;gap:12px;border-color:var(--fear)}
+.mirrorcard p{margin:0}
+.note{color:var(--dim);font-size:13px}
+.frame{position:relative;width:min(260px,100%);aspect-ratio:3/4;margin:4px auto 0;border-radius:50%/42%;overflow:hidden;border:7px solid #8c6a3a;box-shadow:0 0 0 3px var(--line),0 0 44px rgba(167,123,255,.4);background:#0b0102}
+.frame img{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
+.stamp{position:absolute;left:50%;bottom:12%;transform:translateX(-50%) rotate(-8deg);font-family:var(--display);font-size:22px;color:var(--marker);border:3px solid var(--marker);padding:2px 10px;border-radius:8px;background:rgba(8,20,10,.6);white-space:nowrap;animation:stamp .5s .7s both}
+@keyframes stamp{from{opacity:0;transform:translateX(-50%) rotate(-8deg) scale(2.2)}to{opacity:1;transform:translateX(-50%) rotate(-8deg) scale(1)}}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.checks li{display:flex;gap:10px;align-items:baseline;animation:fadein .4s both}
+.checks b{color:var(--marker);font-family:var(--display);font-weight:400;min-width:22px}
+.checks li.eerie b{color:var(--fear)}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* scene animation */
+.bt{font-family:var(--display)}
+.tw{animation:tw 2.4s infinite alternate}
+@keyframes tw{from{opacity:.25}to{opacity:1}}
+.blink{animation:blink 3.6s infinite}
+@keyframes blink{0%,86%,100%{opacity:1}89%,94%{opacity:0}}
+.lurk{animation:lurk 5s infinite}
+@keyframes lurk{0%,100%{opacity:0}30%,70%{opacity:1}}
+.stink{animation:rise 2.4s infinite linear}
+@keyframes rise{from{transform:translateY(0);opacity:.9}to{transform:translateY(-34px);opacity:0}}
+.buzz{animation:buzz .35s infinite alternate}
+@keyframes buzz{from{transform:translate(0,0)}to{transform:translate(3px,-3px)}}
+.sway{transform-box:fill-box;transform-origin:50% 100%;animation:sway 1.5s infinite alternate ease-in-out}
+@keyframes sway{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
+.lunge{transform-box:fill-box;transform-origin:50% 100%;animation:lunge .6s infinite alternate ease-in}
+@keyframes lunge{from{transform:rotate(0)}to{transform:rotate(12deg) translateY(4px)}}
+.shamble{animation:shamble 1.6s infinite alternate ease-in-out}
+@keyframes shamble{from{transform:translateX(0) rotate(0)}to{transform:translateX(-10px) rotate(-3deg)}}
+.creep{animation:creep 2.6s infinite alternate ease-in-out}
+@keyframes creep{from{transform:translateX(0)}to{transform:translateX(-14px)}}
+.jump{animation:jump .7s infinite alternate ease-in-out}
+@keyframes jump{from{transform:translateY(0)}to{transform:translateY(-22px)}}
+.bob{animation:bob .32s infinite alternate}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-3px)}}
+.shake{animation:shk .12s infinite alternate}
+@keyframes shk{from{transform:translateX(-1.2px)}to{transform:translateX(1.2px)}}
+.float{animation:float 1.8s infinite alternate ease-in-out}
+@keyframes float{from{transform:translateY(0)}to{transform:translateY(-7px)}}
+.breathe{animation:breathe 2.6s infinite ease-in-out}
+@keyframes breathe{0%,100%{opacity:.2}50%{opacity:.9}}
+.walk .la{transform-box:fill-box;transform-origin:50% 0;animation:leg .32s infinite alternate}
+.walk .lb{transform-box:fill-box;transform-origin:50% 0;animation:leg .32s infinite alternate-reverse}
+@keyframes leg{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
+.wobble{transform-box:fill-box;transform-origin:center;animation:wob .5s infinite alternate}
+@keyframes wob{from{transform:rotate(-6deg)}to{transform:rotate(6deg)}}
+.conf{animation:conf 2.2s infinite linear}
+@keyframes conf{from{transform:translateY(-20px)}to{transform:translateY(220px)}}
+.pop{transform-box:fill-box;transform-origin:50% 100%;animation:pop .35s ease-out}
+@keyframes pop{from{transform:scale(.6)}to{transform:scale(1)}}
+.speed{animation:speed .4s infinite linear}
+@keyframes speed{from{transform:translateX(0);opacity:.8}to{transform:translateX(-30px);opacity:0}}
+.glow{animation:glow 1.2s infinite alternate}
+@keyframes glow{from{opacity:.55}to{opacity:1}}
+.flicker{animation:flick 2.2s infinite}
+
+@media (max-width:460px){.hud{grid-template-columns:repeat(2,1fr)}.choices{grid-template-columns:1fr}.evbtn{grid-template-columns:118px 1fr}.evbtn b{font-size:16px}}
+@media (prefers-reduced-motion:reduce){.flick,.tw,.blink,.lurk,.stink,.buzz,.sway,.lunge,.shamble,.creep,.jump,.bob,.shake,.float,.breathe,.walk .la,.walk .lb,.wobble,.conf,.speed,.glow,.flicker,.flash.go,.dark p{animation:none!important}.lurk{opacity:1}}
+</style>
+
+<div class="flash" id="flash"></div>
+<div class="dark" id="dark" hidden><p id="darkTxt"></p><span class="dsub" id="darkSub"></span><small class="dhint" id="darkHint" hidden>tap to skip</small></div>
+<button class="sound" id="soundBtn" aria-pressed="false">Sound: off</button>
+
+<div class="wrap">
+  <!-- INTRO -->
+  <section id="intro" style="display:flex;flex-direction:column;gap:14px">
+    <h1 class="flick">Dr. Alyssa's Spider Verse</h1>
+    <p class="sub">A reality for shifting. Everyone who goes says the first night is the worst.</p>
+    <div class="stage" id="introStage"></div>
+    <div class="card">
+      <ol class="rules">
+        <li>There are smelly porta potties everywhere.</li>
+        <li>Everyone is a human with a spider body and a human head.</li>
+        <li>It's always night, with a red sky.</li>
+        <li>The fridge is keeping flies cold.</li>
+        <li>The world has zombie villages everywhere too.</li>
+        <li>Your own body is a spider body.</li>
+        <li>The whole world smells like poop here.</li>
+        <li>There are snakes everywhere too.</li>
+        <li>The snakes are 3-headed.</li>
+      </ol>
+      <p style="margin:12px 0 0;color:var(--dim);font-size:14px">You will stay exactly 1 year, and you will return to 1 second after you shifted.</p>
+    </div>
+    <p class="warn">Once you shift, there is no going back early. 365 nights. No sunrise.</p>
+    <button class="big" id="continueBtn" hidden>Continue</button>
+    <div class="card methods" id="methods">
+      <p class="mhead" id="mHead">Choose your shifting method</p>
+      <button class="method" data-m="raven"><span class="ci"><svg viewBox="0 0 28 28" aria-hidden="true"><path d="M2 15q6-7 12-4l4-4 3 1-2 2 7 1-7 3q-2 6-10 6l2 4h-3l-2-4q-4-1-4-5z" fill="currentColor"/></svg></span><span class="tx"><b>Raven method</b><small>Lay down in a starfish position, count to 100, visualize the Spider Verse.</small></span></button>
+      <button class="method" data-m="julia"><span class="ci"><svg viewBox="0 0 28 28" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1 14q3-8 6 0t6 0 6 0 6 0"/><path d="M4 22h20"/></g></svg></span><span class="tx"><b>Julia method</b><small>Say "I am" affirmations, listen to theta waves, lay down comfy, count to 100, visualize the Spider Verse.</small></span></button>
+      <button class="method" data-m="train"><span class="ci"><svg viewBox="0 0 28 28" aria-hidden="true"><g fill="currentColor"><rect x="5" y="3" width="18" height="17" rx="4"/><circle cx="9" cy="23" r="2.2"/><circle cx="19" cy="23" r="2.2"/></g><rect x="8" y="6" width="12" height="6" rx="1.5" fill="#25090c"/><path d="M3 27h22" stroke="currentColor" stroke-width="2"/></svg></span><span class="tx"><b>Train method</b><small>Put on train sounds, imagine you're on a train to the Spider Verse, visualize the Spider Verse.</small></span></button>
+    </div>
+    <div class="card confirm" id="confirm" hidden>
+      <p class="mhead" id="mName"></p>
+      <ol class="steps" id="mSteps"></ol>
+      <p class="note" id="mNote"></p>
+      <p><b>Are you sure?</b></p>
+      <p style="color:var(--dim);font-size:15px">Something over there already knows you're coming.</p>
+      <div class="row"><button id="noBtn">Pick another method</button><button class="big danger" id="yesBtn" style="font-size:18px">Start shifting</button></div>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section id="game" hidden style="display:flex;flex-direction:column;gap:12px">
+    <div class="hud">
+      <div><b id="dDay">1</b><span>Night / 365</span></div>
+      <div><b id="dFlies">0</b><span>Cold flies</span></div>
+      <div><b id="dHeads">0</b><span>Heads bonked</span></div>
+      <div><b id="dFriends">0</b><span>Spider pals</span></div>
+    </div>
+    <div class="meters">
+      <div><div class="mlab"><span>Tummy</span><span id="hungerTxt"></span></div><div class="bar"><i id="hungerBar"></i></div></div>
+      <div><div class="mlab"><span>Stink</span><span id="stinkTxt"></span></div><div class="bar"><i id="stinkBar"></i></div></div>
+      <div><div class="mlab"><span>Fear</span><span id="fearTxt"></span></div><div class="bar"><i id="fearBar"></i></div></div>
+    </div>
+    <div class="forecast"><span>Tonight:</span><b id="wName"></b><span id="wTip"></span><span class="lv" id="lvTxt"></span></div>
+    <div class="stage" id="stage"></div>
+    <div class="card story" aria-live="polite">
+      <div class="day" id="sDay">Night 1</div>
+      <p class="where" id="sWhere"></p>
+      <p id="sText"></p>
+      <div class="choices" id="choices"></div>
+    </div>
+    <div>
+      <p class="lbl">Who lives with you</p>
+      <div class="badges" id="mates"></div>
+    </div>
+    <div>
+      <p class="lbl">Stuff you've found</p>
+      <div class="badges" id="badges"></div>
+    </div>
+    <details><summary id="diaryTitle">Diary</summary><ul class="diary" id="diary"></ul></details>
+    <button class="ghost" id="endBtn">Skip to night 365</button>
+  </section>
+
+  <!-- RETURN -->
+  <section id="done" hidden style="display:flex;flex-direction:column;gap:14px">
+    <h1>You're back.</h1>
+    <div class="stage" id="endStage"></div>
+    <p class="sub" id="clock"></p>
+    <div class="card mirrorcard">
+      <p class="lbl" style="margin:0">Mirror check</p>
+      <p>Something feels off. Your legs feel... too few. Look in the mirror and make sure you're really human again.</p>
+      <button class="big" id="camBtn">Open front camera</button>
+      <input type="file" id="cam" class="vh" accept="image/*" capture="user" tabindex="-1" aria-hidden="true">
+      <p class="note">On a phone this opens your selfie camera. On a computer it asks for a photo instead. Your picture stays on this device and is never uploaded.</p>
+      <div id="mirror" hidden style="display:flex;flex-direction:column;gap:14px">
+        <div class="frame"><img id="selfie" alt="You in the mirror, human again"><span class="stamp">HUMAN AGAIN</span></div>
+        <ul class="checks" id="checks"></ul>
+      </div>
+    </div>
+    <div class="card" id="summary"></div>
+    <button class="big" id="againBtn">Shift again</button>
+  </section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const G="#3fbf5a";
+const KEY="spiderverse-save-v3";
+let S;
+function reset(){S={day:1,hunger:70,stink:60,fear:90,flies:3,heads:0,pals:[],items:{},done:{},visits:{},home:0,arrived:0,
+  method:null,ravenName:"",mothName:"",zed:0,zedDay:0,zedWord:"",egg:0,eggDay:0,snakeNames:"",gerald:0,geraldDay:0,pip:0,knock:0,knockDay:0,
+  weather:"calm",tonight:[],log:[],pinkNight:false,shiftedAt:Date.now()}}
+reset();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function loadSave(){try{const v=localStorage.getItem(KEY);return v?JSON.parse(v):null}catch(e){return null}}
+function clearSave(){try{localStorage.removeItem(KEY)}catch(e){}}
+const clamp=v=>Math.max(0,Math.min(100,v));
+const hungry=d=>{S.hunger=clamp(S.hunger+d)};
+const smell=d=>{S.stink=clamp(S.stink+d)};
+const scare=d=>{S.fear=clamp(S.fear+d)};
+const NAMES=["Mo","Trixie","Bartholomew","Kip","Juniper","Doug","Pickles","Vee","Nibs","Sprout","Dot","Gus","Wren","Tater","Moss","Penny","Ziggy","Bean"];
+function addPal(){const n=NAMES.find(x=>!S.pals.includes(x))||("Pal #"+(S.pals.length+1));S.pals.push(n);return n}
+
+/* ---------- sound (optional, starts from a button) ---------- */
+let AC=null,soundOn=false,droneNodes=[],hbT=null;
+function ac(){if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C()}return AC}
+function thump(t,v){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type="sine";o.frequency.setValueAtTime(70,t);o.frequency.exponentialRampToValueAtTime(40,t+.12);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.015);g.gain.exponentialRampToValueAtTime(.001,t+.16);o.connect(g).connect(a.destination);o.start(t);o.stop(t+.2)}
+function heartbeat(){if(!soundOn)return;const a=ac();const t=a.currentTime+.02;thump(t,.45);thump(t+.2,.28);
+  hbT=setTimeout(heartbeat,Math.max(520,1500-S.fear*9))}
+function sting(){if(!soundOn)return;const a=ac();if(!a)return;const t=a.currentTime;[220,233].forEach((f,i)=>{const o=a.createOscillator(),g=a.createGain();o.type="triangle";
+  o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f/2.2,t+1.1);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.07,t+.05);g.gain.exponentialRampToValueAtTime(.001,t+1.2);
+  o.connect(g).connect(a.destination);o.start(t);o.stop(t+1.3)})}
+function startSound(){const a=ac();if(!a)return false;try{a.resume()}catch(e){}
+  const f=a.createBiquadFilter();f.type="lowpass";f.frequency.value=190;const g=a.createGain();g.gain.value=.05;f.connect(g).connect(a.destination);
+  droneNodes=[55,55.6,82.4].map(fr=>{const o=a.createOscillator();o.type="sawtooth";o.frequency.value=fr;o.connect(f);o.start();return o});droneNodes.push(g);
+  heartbeat();return true}
+function stopSound(){clearTimeout(hbT);droneNodes.forEach(n=>{try{n.stop?n.stop():n.disconnect()}catch(e){}});droneNodes=[]}
+$("soundBtn").onclick=()=>{soundOn=!soundOn;if(soundOn){if(!startSound())soundOn=false}else stopSound();
+  $("soundBtn").textContent="Sound: "+(soundOn?"on":"off");$("soundBtn").setAttribute("aria-pressed",soundOn)};
+
+/* ---------- drawing kit ---------- */
+let GID=0,THUMB=false;
+const STARS=Array.from({length:26},(_,i)=>[(i*53+17)%360,(i*37+9)%120,(i%3)*.5+.6,(i%5)*.4]);
+const moonColor=()=>S.pinkNight?"#ff8fd0":S.weather==="zmoon"?"#7fdc6a":"#ff5a45";
+function bushes(seed){let d="M0 192";for(let x=0;x<=360;x+=30){const h=10+((seed*7+x*13)%14);d+=` Q${x+15} ${190-h*2} ${x+30} 192`}return `<path d="${d} L360 220 L0 220Z" fill="#100203"/>`}
+function eyePair(x,y,c="#ff3a2a",s=1,cls="blink",d=0){return `<g class="${cls}" style="animation-delay:${d}s"><ellipse cx="${x-4.5*s}" cy="${y}" rx="${3*s}" ry="${2*s}" fill="${c}"/><ellipse cx="${x+4.5*s}" cy="${y}" rx="${3*s}" ry="${2*s}" fill="${c}"/></g>`}
+function lurkers(n,seed){let o="";for(let i=0;i<n;i++){const x=12+((seed*37+i*89)%336),y=170+((seed*11+i*7)%14);o+=eyePair(x,y,i%3===0?"#ffd23f":"#ff3a2a",1,i%2?"blink":"lurk",((i*1.3+seed*.7)%4).toFixed(1))}return o}
+function stage(inner,label,moon=true,o={}){
+  const id=++GID,fear=o.fear!==undefined?o.fear:S.fear,mc=moonColor(),out=S.weather==="blackout"&&!S.pinkNight;
+  const n=Math.round(fear/20),vig=(.12+fear/190).toFixed(2);
+  return `<svg viewBox="0 0 360 220" role="img" aria-label="${label}">
+  <defs><linearGradient id="sg${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22050a"/><stop offset="1" stop-color="${S.pinkNight?"#a3326e":out?"#3a0a0e":"#8f1b20"}"/></linearGradient>
+  <radialGradient id="mg${id}"><stop offset=".6" stop-color="${mc}"/><stop offset="1" stop-color="${mc}" stop-opacity="0"/></radialGradient>
+  <radialGradient id="vg${id}" cx=".5" cy=".5" r=".75"><stop offset=".45" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="1"/></radialGradient></defs>
+  <rect width="360" height="220" fill="url(#sg${id})"/>
+  ${STARS.map(([x,y,r,d])=>`<circle class="tw" style="animation-delay:${d}s" cx="${x}" cy="${y}" r="${r}" fill="#ffb3a6"/>`).join("")}
+  ${moon?(out?`<circle cx="322" cy="34" r="15" fill="#160304" stroke="#4a0d12" stroke-width="1.5"/>`:`<circle cx="322" cy="34" r="26" fill="url(#mg${id})"/><circle cx="322" cy="34" r="15" fill="${mc}"/>`):""}
+  ${bushes(id%5)}${fear>0?lurkers(n,id%9):""}
+  ${inner.replace(/url\(#mg\)/g,`url(#mg${id})`)}
+  ${fear>0?`<rect width="360" height="220" fill="url(#vg${id})" opacity="${vig}" pointer-events="none"/>`:""}</svg>`;
+}
+function bubble(x,y,t,w){if(THUMB)return "";w=w||t.length*8+18;return `<g class="pop"><rect x="${x}" y="${y}" width="${w}" height="24" rx="10" fill="#f4e9e4"/><path d="M${x+14} ${y+23} l6 8 l4 -8z" fill="#f4e9e4"/><text class="bt" x="${x+w/2}" y="${y+17}" text-anchor="middle" font-size="13" fill="#1a0507">${t}</text></g>`}
+
+// the spider person
+function sp(x,y,o={}){
+  const s=o.scale||1,f=o.flip?-1:1,sh=o.shadow;
+  const col=sh?"#0b0102":o.color||G,skin=sh?"#0b0102":o.skin||"#e9b996",hair=sh?"#0b0102":o.hair||"#5a3320",me=!o.color&&!sh;
+  let L=[[-12,-3,-27,-16,-36,22],[-14,2,-31,-4,-40,22],[-12,6,-25,9,-30,22],[-7,9,-13,14,-17,22]];
+  let R=L.map(a=>[-a[0],a[1],-a[2],a[3],-a[4],a[5]]);
+  const lifted=o.reach||o.wave||o.grab;
+  if(o.reach)R[0]=[12,-3,18,-14,4,-22];
+  if(o.wave)R[0]=[12,-3,26,-20,30,-40];
+  if(o.grab)R[0]=[12,-3,32,-12,52,-6];
+  const leg=(a,c)=>`<path class="${c}" d="M${a[0]} ${a[1]} L${a[2]} ${a[3]} L${a[4]} ${a[5]}"/>`;
+  const legs=[...L.map((a,i)=>leg(a,i%2?"lb":"la")),...R.map((a,i)=>leg(a,(i===0&&lifted)?"":(i%2?"la":"lb")))].join("");
+  const socks=(me&&S.items.socks)?[...L,...R].filter((a,i)=>!(i===4&&lifted)).map((a,i)=>`<circle cx="${a[4]}" cy="${a[5]-1}" r="3" fill="${["#ff6bb5","#ffd23f","#6bc4ff","#b07cff"][i%4]}"/>`).join(""):"";
+  const m=o.mood||"happy";
+  const eyes=o.noface?"":sh?`<ellipse cx="-5" cy="-28" rx="3" ry="2" fill="#ffd23f"/><ellipse cx="5" cy="-28" rx="3" ry="2" fill="#ffd23f"/>`
+    :m==="scared"?`<circle cx="-5" cy="-28" r="3.2" fill="#fff"/><circle cx="5" cy="-28" r="3.2" fill="#fff"/><circle cx="-5" cy="-28" r="1.5" fill="#1a0507"/><circle cx="5" cy="-28" r="1.5" fill="#1a0507"/>`
+    :m==="gross"?`<path d="M-8 -29 l5 2 M8 -29 l-5 2" stroke="#1a0507" stroke-width="1.8"/>`
+    :m==="sleep"?`<path d="M-8 -28 q3 2 6 0 M2 -28 q3 2 6 0" stroke="#1a0507" stroke-width="1.6" fill="none"/>`
+    :`<circle cx="-5" cy="-28" r="1.8" fill="#1a0507"/><circle cx="5" cy="-28" r="1.8" fill="#1a0507"/>`;
+  const brows=m==="determined"?`<path d="M-9 -33 L-2 -31 M9 -33 L2 -31" stroke="#1a0507" stroke-width="1.8"/>`:m==="scared"&&!sh?`<path d="M-9 -34 L-2 -36 M9 -34 L2 -36" stroke="#1a0507" stroke-width="1.6"/>`:"";
+  const mouth=sh||o.noface?"":{happy:`<path d="M-5 -21 Q0 -16 5 -21" stroke="#1a0507" stroke-width="1.6" fill="none"/>`,
+    gross:`<path d="M-6 -19 q3 -3 6 0 q3 3 6 0" stroke="#1a0507" stroke-width="1.6" fill="none"/><path d="M1 -18 q1 4 3 4" stroke="#7ac16b" stroke-width="2" fill="none"/>`,
+    scared:`<path d="M-5 -18 l2.5 -2 l2.5 2 l2.5 -2 l2.5 2" stroke="#1a0507" stroke-width="1.5" fill="none"/>`,
+    scream:`<ellipse cx="0" cy="-18" rx="4" ry="6" fill="#1a0507"/>`,
+    puff:`<circle cx="-8" cy="-21" r="4" fill="#f29a8a"/><circle cx="8" cy="-21" r="4" fill="#f29a8a"/><path d="M-3 -19 L3 -19" stroke="#1a0507" stroke-width="1.6"/>`,
+    determined:`<path d="M-5 -19 L5 -19" stroke="#1a0507" stroke-width="1.8"/>`,
+    sleep:`<path d="M-3 -19 L3 -19" stroke="#1a0507" stroke-width="1.4"/>`,
+    howl:`<ellipse cx="0" cy="-18" rx="4" ry="5" fill="#1a0507"/>`}[m]||"";
+  const sweat=(m==="scared"||m==="scream")&&!sh?`<path d="M12 -34 q3 5 0 7 q-3 -2 0 -7z" fill="#9fd8ff"/>`:"";
+  const CAPS=`<path d="M-12 -38 h24 v-8 q-12 -6 -24 0z" fill="#1d2b5a"/><rect x="-15" y="-39" width="30" height="3.5" rx="1.5" fill="#0e1633"/><circle cx="0" cy="-43" r="2" fill="#ffd23f"/>`;
+  const hat=o.cap?CAPS:o.party?`<path d="M-8 -37 L0 -60 L8 -37Z" fill="#ff6bb5" stroke="#fff" stroke-width="1"/><circle cx="0" cy="-61" r="3" fill="#ffd23f"/>`
+    :(me&&S.items.crown)?`<path d="M-10 -38 L-10 -50 L-5 -44 L0 -53 L5 -44 L10 -50 L10 -38Z" fill="#ffd23f" stroke="#a57a10" stroke-width="1"/>`
+    :(me&&S.items.hat)?`<rect x="-9" y="-57" width="18" height="16" fill="#151515" stroke="${G}" stroke-width="1.2"/><rect x="-9" y="-46" width="18" height="3" fill="${G}"/><rect x="-15" y="-42" width="30" height="3.5" rx="1.5" fill="#151515"/>`:(me&&S.items.cap)?CAPS:"";
+  const aura=(me&&S.items.glow)?`<circle class="glow" cx="0" cy="-8" r="36" fill="#a77bff" opacity=".22"/>`:"";
+  const ribbon=(me&&S.items.ribbon)?`<circle cx="10" cy="2" r="5" fill="#ffd23f"/><path d="M8 6 l-2 8 M12 6 l2 8" stroke="#e2483d" stroke-width="2.5"/>`:"";
+  const clip=(me&&S.items.clip)?`<rect x="-3.5" y="-26" width="7" height="4" rx="1.5" fill="#6bc4ff"/>`:"";
+  const shk=(m==="scared"||m==="scream")&&!o.walk&&!o.cls?"shake":"";
+  return `<g transform="translate(${x} ${y}) scale(${f*s} ${s})"><g class="${o.cls||""} ${o.walk?"walk bob":""} ${shk}">${aura}
+    <g stroke="${col}" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">${legs}</g>${socks}
+    <ellipse cx="0" cy="3" rx="16" ry="11" fill="${sh?"#0b0102":"#1e2b20"}" stroke="${col}" stroke-width="2"/>
+    ${sh?"":`<path d="M-8 1 h16 M-6 6 h12" stroke="${col}" stroke-width="1.2" opacity=".6"/>`}${ribbon}
+    <circle cx="0" cy="-26" r="13" fill="${skin}"/>
+    <path d="M-13.5 -26 Q-12 -44 0 -42 Q12 -44 13.5 -26 Q8 -34 0 -34 Q-8 -34 -13.5 -26Z" fill="${hair}"/>
+    ${eyes}${brows}${mouth}${sweat}${clip}${hat}</g></g>`;
+}
+const pal=(x,y,o={})=>sp(x,y,{color:"#d36bff",skin:"#b07a55",hair:"#1b1b1b",...o});
+const pal2=(x,y,o={})=>sp(x,y,{color:"#ffb23f",skin:"#f0c9a8",hair:"#c8452c",...o});
+const pipSp=(x,y,o={})=>sp(x,y,{scale:.42,color:"#6bc4ff",skin:"#f0c9a8",hair:"#2a6bff",...o});
+const shadowSp=(x,y,o={})=>sp(x,y,{shadow:1,flip:1,...o});
+const lantern=(x,y)=>`<circle class="glow" cx="${x}" cy="${y}" r="22" fill="#ffb84a" opacity=".3"/><rect x="${x-6}" y="${y-8}" width="12" height="16" rx="3" fill="#ffb84a" stroke="#5b3d24" stroke-width="2"/><path d="M${x} ${y-8} v-8" stroke="#5b3d24" stroke-width="2"/>`;
+
+function potty(x,open,knock){
+  return `<g><rect x="${x}" y="120" width="40" height="70" rx="3" fill="#3d6fb0" stroke="#162740" stroke-width="2"/>
+  <path d="M${x-3} 123 Q${x+20} 106 ${x+43} 123Z" fill="#2c5590"/>
+  ${open?`<rect x="${x+4}" y="128" width="32" height="61" fill="#070102"/>`:`<rect x="${x+4}" y="128" width="32" height="61" fill="none" stroke="#162740" stroke-width="1.5"/><circle cx="${x+31}" cy="160" r="2" fill="#d8dde3"/>`}
+  <circle cx="${x+20}" cy="136" r="4" fill="#ffd96a"/><circle cx="${x+22}" cy="135" r="4" fill="${open?"#070102":"#3d6fb0"}"/>
+  ${knock?`<g class="shake"><text class="bt" x="${x+20}" y="112" text-anchor="middle" font-size="11" fill="#f4e9e4">KNOCK</text></g><path d="M${x-8} 150 l-6 -3 M${x-8} 158 h-7 M${x+48} 150 l6 -3 M${x+48} 158 h7" stroke="#f4e9e4" stroke-width="2"/>`:""}</g>`;
+}
+const potties=()=>potty(190,0)+potty(240,0)+potty(290,0);
+function stink(x,y,n=3){let o="";for(let i=0;i<n;i++)o+=`<path class="stink" style="animation-delay:${i*.7}s" d="M${x+i*10} ${y} q-5 -6 0 -12 q5 -6 0 -12" stroke="#9bbf3a" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;return o}
+function fly(x,y,d=0){return `<g class="buzz" style="animation-delay:${d}s"><ellipse cx="${x-2}" cy="${y-3}" rx="3" ry="2" fill="#e6f4ff" opacity=".8"/><ellipse cx="${x+2}" cy="${y-3}" rx="3" ry="2" fill="#e6f4ff" opacity=".8"/><circle cx="${x}" cy="${y}" r="2.6" fill="#111"/></g>`}
+function fridge(open,drawer){
+  return `<g><rect x="150" y="50" width="90" height="140" rx="6" fill="#dfe6ea" stroke="#8c9aa3" stroke-width="2"/>
+  ${open?`<rect x="155" y="55" width="80" height="130" rx="3" fill="#a8dcff"/><path d="M155 98 h80 M155 140 h80" stroke="#e8f6ff" stroke-width="3"/>
+  <path d="M240 50 L268 58 L268 182 L240 190Z" fill="#c9d3d9" stroke="#8c9aa3" stroke-width="2"/>
+  <text class="bt" x="195" y="92" text-anchor="middle" font-size="9" fill="#2b5a7a">FLIES (COLD)</text>`
+  :`<path d="M150 95 h90" stroke="#8c9aa3" stroke-width="2"/><rect x="226" y="62" width="5" height="22" rx="2" fill="#8c9aa3"/><rect x="226" y="105" width="5" height="30" rx="2" fill="#8c9aa3"/>`}
+  ${drawer?`<rect x="156" y="160" width="78" height="24" rx="3" fill="#2a1030" stroke="#a77bff" stroke-width="2"/><rect class="glow" x="160" y="182" width="70" height="4" fill="#c9a8ff"/><rect x="186" y="168" width="18" height="4" rx="2" fill="#a77bff"/>`:""}</g>`;
+}
+function snakeNeck(qx,qy,hx,hy,cls,d){
+  return `<g class="${cls}" style="animation-delay:${d}s"><path d="M250 182 Q${qx} ${qy} ${hx} ${hy}" stroke="#4f7d2a" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <ellipse cx="${hx}" cy="${hy}" rx="11" ry="8" fill="#6aa336" stroke="#2f4d17" stroke-width="1.5"/>
+  <circle cx="${hx-4}" cy="${hy-3}" r="2" fill="#ffd23f"/><circle cx="${hx+4}" cy="${hy-3}" r="2" fill="#ffd23f"/>
+  <path d="M${hx} ${hy+7} v6 l-3 3 M${hx} ${hy+13} l3 3" stroke="#e2483d" stroke-width="1.5" fill="none"/></g>`;
+}
+const snakeIdle=()=>`<ellipse cx="250" cy="184" rx="52" ry="10" fill="#4f7d2a"/>`+snakeNeck(205,130,205,92,"sway",0)+snakeNeck(250,110,252,70,"sway",.4)+snakeNeck(295,130,300,92,"sway",.8);
+function hut(x){return `<g><rect x="${x}" y="138" width="64" height="52" fill="#5b3d24" stroke="#2c1c10" stroke-width="2"/><path d="M${x-6} 140 L${x+32} 112 L${x+70} 140Z" fill="#3a2414"/><rect x="${x+24}" y="160" width="16" height="30" fill="#1a0e06"/><rect class="flicker" x="${x+6}" y="150" width="12" height="10" fill="#ffb84a" opacity=".7"/></g>`}
+const village=()=>hut(10)+hut(286);
+function zombie(x,cls="shamble",d=0,o={}){
+  return `<g class="${cls}" style="animation-delay:${d}s"><g transform="translate(${x} 0)">
+  <rect x="-5" y="172" width="4" height="18" fill="#3c4a34"/><rect x="2" y="172" width="4" height="18" fill="#3c4a34"/>
+  <path d="M-10 148 h20 v26 h-20z" fill="${o.shirt||"#6a5a8a"}"/><path d="M-10 168 l4 6 l4 -5 l4 5 l4 -5 l4 5 v-6z" fill="#170405" opacity=".5"/>
+  <path d="M-10 152 h-14 M10 152 h-6" stroke="#7fa36a" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="0" cy="138" r="11" fill="#8fb27a"/><circle cx="-4" cy="136" r="2" fill="#1a0507"/><circle cx="4" cy="137" r="1.2" fill="#1a0507"/>
+  ${o.smile?`<path d="M-5 142 q4 4 8 0" stroke="#1a0507" stroke-width="1.4" fill="none"/>`:`<path d="M-4 143 h7" stroke="#1a0507" stroke-width="1.4"/>`}
+  ${o.hat?`<rect x="-7" y="115" width="14" height="13" fill="#151515" stroke="${G}" stroke-width="1"/><rect x="-11" y="127" width="22" height="3" rx="1.5" fill="#151515"/>`:""}
+  ${o.sash?`<path d="M-10 150 L10 170" stroke="#ffd23f" stroke-width="4"/>`:""}
+  ${o.stuck?`<path d="M-16 128 L16 182 M16 128 L-16 182 M-18 152 h36" stroke="#f4e9e4" stroke-width="1" opacity=".8"/>`:""}</g></g>`;
+}
+const zedFig=(x,cls="")=>zombie(x,cls,0,{hat:S.zed>=2,smile:S.zed>=3,sash:S.zed>=4,shirt:"#3a6a8a"});
+function web(cx,cy,r){let o="";for(let a=0;a<8;a++){const t=a*Math.PI/4;o+=`<line x1="${cx}" y1="${cy}" x2="${(cx+r*Math.cos(t)).toFixed(1)}" y2="${(cy+r*Math.sin(t)).toFixed(1)}"/>`}
+  for(let k=1;k<=3;k++){let p="";for(let a=0;a<=8;a++){const t=a*Math.PI/4,rr=r*k/3;p+=(a?"L":"M")+(cx+rr*Math.cos(t)).toFixed(1)+" "+(cy+rr*Math.sin(t)).toFixed(1)}o+=`<path d="${p}"/>`}
+  return `<g stroke="#f4e9e4" stroke-width="1" fill="none" opacity=".75">${o}</g>`}
+function building(x,w,h,sign,c){return `<g><rect x="${x}" y="${190-h}" width="${w}" height="${h}" fill="${c}" stroke="#170405" stroke-width="2"/><rect x="${x+6}" y="${196-h}" width="${w-12}" height="18" rx="3" fill="#170405"/><text class="bt" x="${x+w/2}" y="${209-h}" text-anchor="middle" font-size="10" fill="#ffd23f">${sign}</text><rect x="${x+w/2-8}" y="166" width="16" height="24" fill="#170405"/></g>`}
+const town=()=>building(10,80,90,"HATS","#4a2a5a")+building(100,90,70,"8 SOCKS","#2a4a5a")+building(270,80,100,"FLY CAFE","#5a3a2a");
+const confetti=()=>Array.from({length:THUMB?10:22},(_,i)=>`<rect class="conf" style="animation-delay:${(i%7)*.3}s" x="${(i*41)%350}" y="${-10-(i%5)*14}" width="4" height="7" fill="${["#ff6bb5","#ffd23f","#6bc4ff",G][i%4]}"/>`).join("");
+const hill=()=>`<path d="M0 192 Q180 70 360 192Z" fill="#2a0709"/>`;
+const bigMoon=(cls="")=>`<g class="${cls}"><circle cx="180" cy="52" r="46" fill="url(#mg)"/><circle cx="180" cy="52" r="30" fill="${moonColor()}"/></g>`;
+function gerald(x,y,s=1){return `<g transform="translate(${x} ${y}) scale(${s})"><g class="float"><g fill="#9bbf3a" opacity=".9"><circle r="16"/><circle cx="-14" cy="4" r="11"/><circle cx="14" cy="4" r="11"/><circle cx="-6" cy="-11" r="10"/><circle cx="8" cy="-10" r="10"/></g><circle cx="-5" cy="-1" r="2.5" fill="#1a0507"/><circle cx="5" cy="-1" r="2.5" fill="#1a0507"/><path d="M-5 6 q5 4 10 0" stroke="#1a0507" stroke-width="1.5" fill="none"/></g></g>`}
+function egg(x,y,cracked){return `<g class="${cracked?"wobble":""}"><ellipse cx="${x}" cy="${y-11}" rx="9" ry="12" fill="#e8e2c8" stroke="#a99f7a" stroke-width="1.5"/><circle cx="${x-3}" cy="${y-15}" r="2" fill="#6aa336"/><circle cx="${x+4}" cy="${y-8}" r="1.6" fill="#6aa336"/>${cracked?`<path d="M${x-8} ${y-12} l4 -3 l3 3 l4 -4 l4 3" stroke="#5a4a2a" stroke-width="1.2" fill="none"/>`:""}</g>`}
+function babySnake(x){return `<g><ellipse cx="${x}" cy="187" rx="16" ry="4" fill="#4f7d2a"/>${[-9,0,9].map((d,i)=>{const hx=x+d*1.4,hy=166-(i===1?6:0);return `<g class="sway" style="animation-delay:${i*.3}s"><path d="M${x} 186 Q${x+d} 176 ${hx} ${hy}" stroke="#5f8f33" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="${hx}" cy="${hy}" r="4.5" fill="#6aa336"/><circle cx="${hx-1.5}" cy="${hy-1}" r="1" fill="#ffd23f"/><circle cx="${hx+1.5}" cy="${hy-1}" r="1" fill="#ffd23f"/></g>`}).join("")}</g>`}
+function elder(x,y,s=1,noEyes){let legs="";for(let i=0;i<14;i++){const a=Math.PI*(.05+i*.065),l=60+(i%3)*12;legs+=`<path d="M0 0 Q${(Math.cos(a)*l*.6).toFixed(1)} ${(-Math.sin(a)*l*.9).toFixed(1)} ${(Math.cos(a)*l).toFixed(1)} ${(Math.sin(a)*20+30).toFixed(1)}"/>`}
+  return `<g transform="translate(${x} ${y}) scale(${s})"><g stroke="#0b0102" stroke-width="4" fill="none" stroke-linecap="round">${legs}</g><ellipse cx="0" cy="0" rx="30" ry="20" fill="#0b0102"/><circle cx="0" cy="-26" r="15" fill="#0b0102"/>${noEyes?"":eyePair(0,-27,"#ffd23f",1.3,"blink")}</g>`}
+
+const HOME_NAMES=["a rock","a small web","a cozy web with a hammock","the Web Mansion"];
+function home(){
+  const L=S.home;let o="";
+  if(L===0)o=`<ellipse cx="62" cy="186" rx="38" ry="11" fill="#3a2424"/><text class="bt" x="62" y="210" text-anchor="middle" font-size="10" fill="#c9aaa4">home (a rock)</text>`;
+  else{
+    o=`<path d="M14 190 L26 96 M112 190 L100 96" stroke="#3a2414" stroke-width="5" stroke-linecap="round"/>`;
+    o+=L===1?web(63,130,32):web(63,124,40);
+    if(L>=2)o+=`<path d="M26 160 Q63 184 100 160" stroke="#f4e9e4" stroke-width="2.5" fill="none"/>`;
+    if(L>=3)o+=`<path d="M8 98 L63 62 L118 98" stroke="#3a2414" stroke-width="5" fill="none" stroke-linecap="round"/>`+web(30,84,14)+web(96,84,14)+`<rect x="22" y="196" width="82" height="16" rx="4" fill="#3a2414"/><text class="bt" x="63" y="208" text-anchor="middle" font-size="10" fill="#ffd23f">WEB MANSION</text>`;
+  }
+  if(S.items.lantern)o+=lantern(L?63:100,L?104:170);
+  if(S.items.jar)o+=`<g><rect x="30" y="166" width="20" height="24" rx="4" fill="#cfe8ff" opacity=".5" stroke="#cfe8ff"/><rect x="29" y="162" width="22" height="5" fill="#8c9aa3"/>${gerald(40,180,.35)}</g>`;
+  if(S.knock===1)o+=`<rect x="70" y="150" width="22" height="14" fill="#f4e9e4" transform="rotate(-6 81 157)"/><text class="bt" x="81" y="161" text-anchor="middle" font-size="7" fill="#1a0507" transform="rotate(-6 81 157)">NOT YET</text>`;
+  return o;
+}
+function companions(){
+  let o="";
+  if(S.egg===1||S.egg===2)o+=egg(118,190,S.egg===2);
+  if(S.egg>=3)o+=babySnake(258);
+  if(S.pip)o+=pipSp(226,181);
+  if(S.zed>=1)o+=zedFig(312);
+  if(S.gerald===1||S.gerald===3)o+=gerald(214,96,S.gerald===3?.5:.9);
+  if(S.ravenName)o+=S.home?raven(100,86,.6,-1):raven(88,170,.6,-1);
+  if(S.mothName)o+=moth(132,70,.32);
+  return o;
+}
+function weatherFx(){
+  const w=S.weather;
+  if(w==="stink")return `<rect width="360" height="220" fill="#7a9a2a" opacity=".12"/>`+stink(150,120)+stink(260,90);
+  if(w==="swarm")return Array.from({length:THUMB?6:14},(_,i)=>fly(20+(i*67)%330,30+(i*29)%110,(i%4)*.1)).join("");
+  if(w==="fog")return `<rect y="150" width="360" height="40" fill="#d6e0cf" opacity=".12"/><rect y="118" width="360" height="30" fill="#d6e0cf" opacity=".07"/>`;
+  if(w==="blackout")return `<rect width="360" height="220" fill="#000" opacity=".35"/>`+eyePair(150,60,"#ffd23f",1,"lurk",.5)+eyePair(250,90,"#ff3a2a",1,"lurk",2);
+  if(w==="perfume")return Array.from({length:THUMB?8:18},(_,i)=>`<path class="conf" style="animation-delay:${(i%6)*.35}s" d="M${(i*43)%350} ${-10-(i%4)*12} v8" stroke="#ff9ad6" stroke-width="2" stroke-linecap="round"/>`).join("");
+  return "";
+}
+const homeScene=(extra="",spo={},label="Your home in the Spider Verse")=>stage(weatherFx()+home()+companions()+sp(168,168,spo)+extra,label);
+
+/* ---------- choice icons ---------- */
+const IC={
+ fly:`<ellipse cx="9" cy="9" rx="5" ry="3.5" fill="currentColor" opacity=".5"/><ellipse cx="19" cy="9" rx="5" ry="3.5" fill="currentColor" opacity=".5"/><circle cx="14" cy="16" r="5.5" fill="currentColor"/>`,
+ web:`<g stroke="currentColor" fill="none" stroke-width="1.6"><path d="M14 2v24M2 14h24M5 5l18 18M23 5L5 23"/><path d="M14 7l5 2 2 5-2 5-5 2-5-2-2-5 2-5z"/></g>`,
+ run:`<g stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"><path d="M3 9h10M1 15h12M4 21h9"/><path d="M17 7l7 7-7 7"/></g>`,
+ talk:`<path d="M4 5h20v13H12l-6 5v-5H4z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>`,
+ moon:`<path d="M18 3a11 11 0 1 0 7 17A9 9 0 0 1 18 3z" fill="currentColor"/>`,
+ hide:`<g stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"><path d="M3 13q11 9 22 0"/><path d="M7 17l-2 3M14 19v3M21 17l2 3"/></g>`,
+ eye:`<path d="M2 14q12-12 24 0q-12 12-24 0z" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="14" cy="14" r="4" fill="currentColor"/>`,
+ gift:`<g fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="20" height="13"/><path d="M2 7h24v4H2zM14 7v17"/><path d="M14 7q-6-6-7 0M14 7q6-6 7 0"/></g>`,
+ party:`<path d="M5 24L11 6l11 11z" fill="currentColor"/><circle cx="21" cy="5" r="2" fill="currentColor"/><circle cx="25" cy="11" r="1.6" fill="currentColor"/>`,
+ bolt:`<path d="M16 2L5 16h8l-2 10 12-15h-8z" fill="currentColor"/>`,
+ raven:`<path d="M2 15q6-7 12-4l4-4 3 1-2 2 7 1-7 3q-2 6-10 6l2 4h-3l-2-4q-4-1-4-5z" fill="currentColor"/>`,
+ train:`<g fill="currentColor"><rect x="5" y="3" width="18" height="17" rx="4"/><circle cx="9" cy="23" r="2.2"/><circle cx="19" cy="23" r="2.2"/></g><rect x="8" y="6" width="12" height="6" rx="1.5" fill="#25090c"/>`,
+ star:`<path d="M14 2l3 8 9 .5-7 5.5 2.5 9L14 20l-7.5 5 2.5-9-7-5.5 9-.5z" fill="currentColor"/>`,
+ ticket:`<g fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h22v4a2 2 0 0 0 0 4v4H3v-4a2 2 0 0 0 0-4z"/><path d="M10 9v10" stroke-dasharray="2 2"/></g>`,
+ spider:`<g stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"><path d="M10 12l-6-5M10 15H3M10 18l-6 5M18 12l6-5M18 15h7M18 18l6 5"/></g><ellipse cx="14" cy="16" rx="5" ry="6" fill="currentColor"/><circle cx="14" cy="8" r="3.5" fill="currentColor"/>`
+};
+const ICMAP=[[/fl(y|ies)|snack|eat|muffin|pie|feed|taste|drops/i,"fly"],[/web|spin|trap|jar/i,"web"],[/run|race|escape|back away|nope|walk away|bonk your way/i,"run"],
+ [/bonk|stare|stand|enter|bake/i,"bolt"],[/say|hi\b|hello|speech|thank|ask|teach|whisper|sing|hum|name|poster|scream/i,"talk"],[/star|moon|wish|howl|hill|air out/i,"moon"],
+ [/hide|still|shut|blanket|sleep|nap|stay|leave|cut|wait/i,"hide"],[/open|knock|look|turn|listen|follow|count|stake|go in|watch|shoo/i,"eye"],
+ [/buy|hat|sock|lantern|shop/i,"gift"],[/party|dance|festival|parade|ride|bring|throw/i,"party"]];
+function icon(label){const k=(ICMAP.find(([r])=>r.test(label))||[0,"spider"])[1];return `<span class="ci"><svg viewBox="0 0 28 28" aria-hidden="true">${IC[k]}</svg></span>`}
+
+/* ---------- mini-games ---------- */
+// difficulty climbs through the year
+const LV=()=>S.day<=60?1:S.day<=130?2:S.day<=200?3:S.day<=280?4:5;
+const LVN=["","Easy","Normal","Tricky","Hard","Nightmare"];
+let MINI=null;
+function stopMini(){if(MINI){MINI.stop();MINI=null}}
+function hud(lv=true){const L=LV();return `<g pointer-events="none"><rect x="8" y="8" width="${lv?226:344}" height="26" rx="10" fill="#f4e9e4"/><text id="mt" class="bt" x="${lv?121:180}" y="26" text-anchor="middle" font-size="13" fill="#1a0507"></text>
+  ${lv?`<rect x="242" y="8" width="110" height="26" rx="10" fill="#a77bff"/><text class="bt" x="297" y="26" text-anchor="middle" font-size="12" fill="#1a0507">Lv ${L} · ${LVN[L]}</text>`:""}</g><text id="fb" class="bt" x="180" y="208" text-anchor="middle" font-size="15" fill="#ffd23f" pointer-events="none"></text>`}
+function fb(t){const e=$("fb");if(e)e.textContent=t}
+
+function flyGame(bg,n,secs,then){
+  const L=LV(),spd=[0,.45,.65,.85,1.05,1.3][L],hr=[0,28,23,19,17,15][L],mx=3.6*spd;
+  const fl=Array.from({length:n},()=>({x:rnd(30,330),y:rnd(50,170),vx:(Math.random()-.5)*3.4*spd,vy:(Math.random()-.5)*3.4*spd,alive:true}));
+  $("stage").innerHTML=stage(bg+fl.map((f,i)=>`<g data-hit="${i}" id="f${i}" transform="translate(${f.x} ${f.y})" style="cursor:pointer"><circle r="${hr}" fill="#000" fill-opacity="0"/><ellipse cx="-3" cy="-4" rx="4.5" ry="2.8" fill="#e6f4ff" opacity=".9"/><ellipse cx="3" cy="-4" rx="4.5" ry="2.8" fill="#e6f4ff" opacity=".9"/><circle r="4" fill="#111"/></g>`).join("")+hud(),"Catch the flies mini-game",true,{fear:0});
+  let caught=0,left=secs,raf,live=true;
+  const upd=()=>{const t=$("mt");if(t)t.textContent=`Tap the flies! ${caught} caught · ${left}s`};
+  const tick=()=>{fl.forEach((f,i)=>{if(!f.alive)return;f.x+=f.vx;f.y+=f.vy;
+    if(f.x<15||f.x>345)f.vx*=-1;if(f.y<44||f.y>182)f.vy*=-1;
+    if(Math.random()<.03){f.vx=Math.max(-mx,Math.min(mx,f.vx+(Math.random()-.5)*2*spd));f.vy=Math.max(-mx,Math.min(mx,f.vy+(Math.random()-.5)*2*spd))}
+    const el=$("f"+i);if(el)el.setAttribute("transform",`translate(${f.x.toFixed(1)} ${f.y.toFixed(1)})`)});
+    if(live)raf=requestAnimationFrame(tick)};
+  upd();tick();
+  const iv=setInterval(()=>{left--;upd();if(left<=0)done()},1000);
+  function halt(){live=false;cancelAnimationFrame(raf);clearInterval(iv)}
+  function done(){halt();MINI=null;setTimeout(()=>then(caught),350)}
+  MINI={hit(i,el){const f=fl[i];if(!f||!f.alive)return;f.alive=false;caught++;el.remove();fb(pick(["got one!","crunch","+1","yum"]));upd();if(caught===n)done()},stop:halt};
+}
+
+function snakeGame(rounds,then){
+  const L=LV(),win=[0,1600,1250,1000,800,620][L];
+  const H=[[200,96],[252,72],[304,96]];
+  $("stage").innerHTML=stage(`<ellipse cx="250" cy="184" rx="52" ry="10" fill="#4f7d2a"/>`+H.map(([x,y],i)=>`<g data-hit="${i}" style="cursor:pointer"><path d="M250 182 Q${(250+x)/2} ${y+56} ${x} ${y}" stroke="#4f7d2a" stroke-width="10" fill="none" stroke-linecap="round"/><circle cx="${x}" cy="${y}" r="24" fill="#000" fill-opacity="0"/><ellipse id="hd${i}" cx="${x}" cy="${y}" rx="12" ry="9" fill="#6aa336" stroke="#2f4d17" stroke-width="1.5"/><circle cx="${x-4}" cy="${y-3}" r="2" fill="#1a0507"/><circle cx="${x+4}" cy="${y-3}" r="2" fill="#1a0507"/></g>`).join("")+sp(90,168,{mood:"determined"})+hud(),"Bonk the snake heads mini-game",true,{fear:0});
+  let r=0,bonks=0,active=-1,to,live=true;
+  const upd=()=>{const t=$("mt");if(t)t.textContent=`Bonk the glowing head! ${bonks}/${rounds}`};
+  const glow=(i,on)=>{const e=$("hd"+i);if(e){e.setAttribute("fill",on?"#ffd23f":"#6aa336");e.setAttribute("rx",on?15:12);e.setAttribute("ry",on?11:9)}};
+  function next(){if(!live)return;if(r>=rounds)return done();
+    to=setTimeout(()=>{if(!live)return;active=rnd(0,2);r++;glow(active,true);
+      to=setTimeout(()=>{if(!live)return;if(active>=0){fb("OUCH! too slow");glow(active,false);active=-1}next()},Math.max(450,win-r*20))},rnd(400,900))}
+  function halt(){live=false;clearTimeout(to)}
+  function done(){halt();MINI=null;setTimeout(()=>then(bonks),400)}
+  upd();next();
+  MINI={hit(i){if(active<0)return;if(i===active){bonks++;fb(pick(["BONK!","BONK!!","boop.","nice!"]));glow(i,false);active=-1;upd()}else fb("wrong head!")},stop:halt};
+}
+
+function webGame(n,secs,then){
+  const L=LV();n=Math.min(10,Math.max(4,n-3+L));secs=secs+4-L;
+  const cx=180,cy=104;const ang=Array.from({length:n},(_,i)=>i/n*Math.PI*2).sort(()=>Math.random()-.5);
+  const P=ang.map(t=>[cx+Math.cos(t)*rnd(80,105),cy+Math.sin(t)*rnd(52,66)]);
+  $("stage").innerHTML=stage(`<g id="wl" stroke="#f4e9e4" stroke-width="2" fill="none"></g>`+P.map(([x,y],i)=>`<g data-hit="${i}" style="cursor:pointer"><circle cx="${x}" cy="${y}" r="20" fill="#000" fill-opacity="0"/><circle id="pg${i}" cx="${x}" cy="${y}" r="11" fill="#f4e9e4" stroke="#3fbf5a" stroke-width="2"/><text class="bt" x="${x}" y="${y+5}" text-anchor="middle" font-size="13" fill="#1a0507" pointer-events="none">${i+1}</text></g>`).join("")+sp(cx,cy+18,{scale:.6,mood:"determined"})+hud(),"Spin the web mini-game",true,{fear:0});
+  let k=0,left=secs,live=true;
+  const upd=()=>{const t=$("mt");if(t)t.textContent=`Tap 1 to ${n} in order! ${left}s`};
+  const iv=setInterval(()=>{left--;upd();if(left<=0)done()},1000);
+  function halt(){live=false;clearInterval(iv)}
+  function done(){halt();MINI=null;if(k===n){const wl=$("wl");if(wl)wl.insertAdjacentHTML("beforeend",P.map(([x,y])=>`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}"/>`).join(""))}setTimeout(()=>then(k,n),700)}
+  upd();
+  MINI={hit(i){if(!live)return;if(i===k){$("pg"+i).setAttribute("fill","#3fbf5a");if(k>0){const[a,b]=P[k-1],[c,d]=P[k];$("wl").insertAdjacentHTML("beforeend",`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}"/>`)}k++;fb(k===n?"WEB!":"zip");if(k===n)done()}else fb("wrong peg!")},stop:halt};
+}
+
+// tap as fast as you can before the shadow reaches you
+function chaseGame(need,secs,then){
+  need=Math.max(12,need-16+5*LV());
+  $("stage").innerHTML=stage(`<g id="cm">${sp(150,168,{mood:"scared",walk:true,flip:true})}</g><g id="cs" transform="translate(0 0)">${shadowSp(330,168,{walk:true})}</g>
+    <rect x="70" y="46" width="220" height="10" rx="5" fill="#5c1a1f" pointer-events="none"/><rect id="cp" x="70" y="46" width="0" height="10" rx="5" fill="#3fbf5a" pointer-events="none"/>`+hud()+
+    `<rect data-hit="0" width="360" height="220" fill="#000" fill-opacity="0" style="cursor:pointer"/>`,"Run mini-game",true,{fear:0});
+  let p=0,live=true;const t0=Date.now(),T=secs*1000;
+  const upd=()=>{const t=$("mt");if(t)t.textContent=`TAP TAP TAP to run! ${Math.max(0,Math.ceil((T-(Date.now()-t0))/1000))}s`};
+  const iv=setInterval(()=>{const fr=(Date.now()-t0)/T;const cs=$("cs");if(cs)cs.setAttribute("transform",`translate(${(-150*fr+p*(70/need)).toFixed(1)} 0)`);
+    const cm=$("cm");if(cm)cm.setAttribute("transform",`translate(${(-p*(110/need)).toFixed(1)} 0)`);upd();if(fr>=1)done(false)},50);
+  function halt(){live=false;clearInterval(iv)}
+  function done(w){halt();MINI=null;setTimeout(()=>then(w),300)}
+  upd();
+  MINI={hit(){if(!live)return;p++;const b=$("cp");if(b)b.setAttribute("width",Math.min(220,220*p/need));if(p%4===0)fb(pick(["run!","faster!","go go go","don't look back"]));if(p>=need)done(true)},stop:halt};
+}
+
+// eyes open in the dark: tap them to shoo them away
+function eyeGame(rounds,then){
+  const win=[0,1700,1350,1100,900,700][LV()];
+  $("stage").innerHTML=stage(`<rect width="360" height="220" fill="#000" opacity=".8"/>`+sp(180,168,{mood:"scared",scale:.8})+
+    `<g id="eg" data-hit="0" visibility="hidden" style="cursor:pointer"><circle cx="0" cy="0" r="26" fill="#000" fill-opacity="0"/><ellipse cx="-7" cy="0" rx="5" ry="3.4" fill="#ffd23f"/><ellipse cx="7" cy="0" rx="5" ry="3.4" fill="#ffd23f"/><circle cx="-7" cy="0" r="1.6" fill="#1a0507"/><circle cx="7" cy="0" r="1.6" fill="#1a0507"/></g>`+hud(),"Shoo the eyes mini-game",false,{fear:0});
+  let r=0,got=0,active=false,to,live=true;
+  const eg=()=>$("eg");
+  const upd=()=>{const t=$("mt");if(t)t.textContent=`Tap the eyes to shoo them! ${got}/${rounds}`};
+  function next(){if(!live)return;if(r>=rounds)return done();
+    to=setTimeout(()=>{if(!live)return;r++;let x,y;do{x=rnd(30,330);y=rnd(50,180)}while(Math.abs(x-180)<45&&y>120);
+      const e=eg();if(e){e.setAttribute("transform",`translate(${x} ${y})`);e.setAttribute("visibility","visible")}active=true;
+      to=setTimeout(()=>{if(!live)return;if(active){active=false;const e=eg();if(e)e.setAttribute("visibility","hidden");fb(pick(["it blinked closer...","too slow...","...it's still watching"]))}next()},Math.max(480,win-r*15))},rnd(400,900))}
+  function halt(){live=false;clearTimeout(to)}
+  function done(){halt();MINI=null;setTimeout(()=>then(got),400)}
+  upd();next();
+  MINI={hit(){if(!active)return;active=false;got++;const e=eg();if(e)e.setAttribute("visibility","hidden");fb(pick(["SHOO!","go away!","eek","gone!"]));upd()},stop:halt};
+}
+document.addEventListener("pointerdown",e=>{if(!MINI)return;const t=e.target.closest&&e.target.closest("#stage [data-hit]");if(t){e.preventDefault();MINI.hit(+t.dataset.hit,t)}});
+
+/* ---------- weather ---------- */
+const WEATHER={calm:["Calm red night","Too calm. Something is watching."],stink:["Stink storm","The porta potties are extra loud tonight."],
+  swarm:["Fly swarm","Free food is flying everywhere."],fog:["Snake fog","You can hear hissing in three directions at once."],
+  zmoon:["Zombie moon","The moon turned green. The zombies are restless."],blackout:["Moon-out","The moon went dark. Don't count the eyes."],
+  perfume:["Perfume drizzle","Rare! For one night it smells like flowers."]};
+function rollWeather(){const r=Math.random();return r<.3?"calm":r<.43?"stink":r<.56?"swarm":r<.69?"fog":r<.8?"zmoon":r<.95?"blackout":"perfume"}
+
+/* ---------- arrival stories: nights 1 to 3 depend on how you shifted ---------- */
+const RULES=`"Three rules for new legs. Never open the fridge's bottom drawer. Never knock on a porta potty that knocks first. And if the moon ever goes out... don't count the eyes."`;
+let CID=0;
+function raven(x,y,s=1,f=1,cls="float"){return `<g transform="translate(${x} ${y}) scale(${f*s} ${s})"><g class="${cls}"><path d="M-16 2 q4 -14 18 -12 l9 -5 l2 4 l-6 4 q6 7 -2 15 l4 8 h-4 l-4 -6 q-11 2 -17 -8z" fill="#050101" stroke="#3a0a0e" stroke-width="1"/><circle cx="5" cy="-8" r="1.8" fill="#ff3a2a"/></g></g>`}
+function trainCar(){return `<g><rect x="0" y="190" width="360" height="6" fill="#3a2424"/><rect x="6" y="94" width="214" height="90" rx="10" fill="#2a3b4a" stroke="#0b1620" stroke-width="2"/>${[24,76,128].map(x=>`<rect class="flicker" x="${x}" y="110" width="40" height="28" rx="4" fill="#ffb84a" opacity=".5"/>`).join("")}<rect x="178" y="108" width="34" height="76" fill="#070102"/><circle cx="50" cy="188" r="8" fill="#111"/><circle cx="170" cy="188" r="8" fill="#111"/>
+  <path d="M266 190 V92 M334 190 V92" stroke="#3a2414" stroke-width="4"/><rect x="248" y="58" width="104" height="38" rx="5" fill="#170405" stroke="#ffd23f" stroke-width="1.5"/><text class="bt" x="300" y="75" text-anchor="middle" font-size="11" fill="#ffd23f">SPIDER VERSE</text><text class="bt" x="300" y="89" text-anchor="middle" font-size="10" fill="#ffd23f">STATION</text></g>`}
+function puddle(x,y,w=70){return `<ellipse cx="${x}" cy="${y}" rx="${w}" ry="${w*.22}" fill="#3a0a0e" stroke="#5c1a1f" stroke-width="2"/><path d="M${x-w*.5} ${y-2} q10 -3 20 0 M${x+w*.15} ${y+3} q8 -2 16 0" stroke="#ff8a7a" stroke-width="1.2" opacity=".5" fill="none"/>`}
+function reflect(x,y,inner,w){const id="pc"+(++CID);return `<clipPath id="${id}"><ellipse cx="${x}" cy="${y}" rx="${w}" ry="${w*.22}"/></clipPath><g clip-path="url(#${id})" opacity=".55"><g transform="translate(0 ${2*y}) scale(1 -1)">${inner}</g></g>`}
+const waves=(op=1)=>`<g opacity="${op}">`+[60,95,130].map((y,i)=>`<path class="breathe" style="animation-delay:${i*.7}s" d="M0 ${y} q22.5 -14 45 0 t45 0 t45 0 t45 0 t45 0 t45 0 t45 0 t45 0" stroke="#a77bff" stroke-width="2" fill="none"/>`).join("")+`</g>`;
+function caveScene(inner){return stage(`<rect width="360" height="220" fill="#0d0310"/><path d="M0 0H360V220H0Z M20 205 Q180 -30 340 205Z" fill="#1d0a1f" fill-rule="evenodd"/>`+
+  [["I AM",30,70],["I AM",296,80],["I AM",40,150],["I AM",290,160],["I AM",160,34]].map(([w,x,y],i)=>`<text class="bt breathe" style="animation-delay:${i*.5}s" x="${x}" y="${y}" font-size="12" fill="#c9a8ff">${w}</text>`).join("")+
+  `<ellipse class="glow" cx="230" cy="188" rx="70" ry="10" fill="#a77bff" opacity=".6"/>`+inner,"The Echo Cave",false,{fear:0})}
+function moth(x,y,s=1,dim){return `<g transform="translate(${x} ${y}) scale(${s})"><g class="float"><circle class="glow" r="44" fill="#a77bff" opacity="${dim?.08:.22}"/><path d="M0 0 C-30 -40 -60 -10 -40 10 C-30 22 -10 12 0 4Z M0 0 C30 -40 60 -10 40 10 C30 22 10 12 0 4Z" fill="${dim?"#5a3e8a":"#b892ff"}" stroke="#e9dcff" stroke-width="1.5"/><circle cx="-28" cy="-6" r="6" fill="#ffd23f" opacity=".7"/><circle cx="28" cy="-6" r="6" fill="#ffd23f" opacity=".7"/><ellipse cy="6" rx="5" ry="16" fill="#3a2a5a"/><path d="M-2 -10 q-6 -12 -14 -14 M2 -10 q6 -12 14 -14" stroke="#e9dcff" stroke-width="1.5" fill="none"/><circle cx="-3" cy="-6" r="1.5" fill="#fff"/><circle cx="3" cy="-6" r="1.5" fill="#fff"/></g></g>`}
+function conductor(x,y,face,o={}){return sp(x,y,{color:"#6b8cff",skin:face?"#f3e6b5":"#0b0102",hair:"#1d2b5a",cap:1,noface:!face,scale:1.15,flip:true,...o})}
+function ticketSvg(x,y,s=1){return `<g transform="translate(${x} ${y}) scale(${s}) rotate(-8)"><g class="float"><rect x="-36" y="-16" width="72" height="32" rx="3" fill="#ffd23f" stroke="#a57a10" stroke-width="1.5"/><text class="bt" x="0" y="-1" text-anchor="middle" font-size="10" fill="#1a0507">ONE WAY</text>${Array.from({length:12},(_,i)=>`<circle cx="${-30+i*5.4}" cy="9" r="1.6" fill="${i===0?"#1a0507":"#a57a10"}"/>`).join("")}</g></g>`}
+function suitcase(x,y,shake,open){return `<g class="${shake?"shake":""}">${open?`<rect x="${x-28}" y="${y-62}" width="56" height="26" rx="5" fill="#6a3a1a" stroke="#3a2414" stroke-width="2"/>`:""}<rect x="${x-28}" y="${y-36}" width="56" height="36" rx="5" fill="#7a4a2a" stroke="#3a2414" stroke-width="2"/>${open?`<rect x="${x-24}" y="${y-34}" width="48" height="10" fill="#ff6bb5"/><rect x="${x-14}" y="${y-36}" width="10" height="8" fill="#6bc4ff"/>`:`<path d="M${x-10} ${y-36} v-6 h20 v6" stroke="#3a2414" stroke-width="3" fill="none"/>`}<rect x="${x+8}" y="${y-28}" width="16" height="10" fill="#f4e9e4"/><text class="bt" x="${x+16}" y="${y-20}" text-anchor="middle" font-size="6" fill="#1a0507">YOU</text></g>`}
+function faceMoon(x,y){return `<g class="float"><circle cx="${x}" cy="${y}" r="14" fill="#f3e6b5" stroke="#c9b27a" stroke-width="1.5"/><circle cx="${x-5}" cy="${y-2}" r="4" fill="none" stroke="#1a0507" stroke-width="1.3"/><circle cx="${x+5}" cy="${y-2}" r="4" fill="none" stroke="#1a0507" stroke-width="1.3"/><path d="M${x-1} ${y-2} h2" stroke="#1a0507" stroke-width="1.3"/><circle cx="${x-5}" cy="${y-2}" r="1.3" fill="#1a0507"/><circle cx="${x+5}" cy="${y-2}" r="1.3" fill="#1a0507"/><path d="M${x-5} ${y+6} q5 4 10 0" stroke="#1a0507" stroke-width="1.4" fill="none"/></g>`}
+const shinyTrail=()=>[[100,184],[130,186],[160,184]].map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${4-i*.5}" fill="#ffd23f" class="tw" style="animation-delay:${i*.3}s"/>`).join("")+[200,240,280,320].map((x,i)=>`<circle cx="${x}" cy="${186-i*2}" r="2.5" fill="#fff" class="tw" style="animation-delay:${i*.4}s"/>`).join("");
+const feather=(x,y)=>`<g transform="translate(${x} ${y}) rotate(-30)"><g class="float"><path d="M0 0 q10 -30 0 -60 q-10 30 0 60z" fill="#111" stroke="#a77bff" stroke-width="1.2"/><path d="M0 0 v-58" stroke="#a77bff" stroke-width="1"/></g></g>`;
+
+/* ---------- new mini-games ---------- */
+// count your own legs by tapping each one
+const LEGPTS=[[-27,-16],[-31,-4],[-25,9],[-13,14],[13,14],[25,9],[31,-4],[27,-16]];
+function legGame(bg,lines,then,o={}){
+  const cx=180,cy=140,pts=LEGPTS.map(([x,y])=>[cx+x*1.5+(x<0?-12:12),cy+y*1.5-4]);
+  $("stage").innerHTML=stage(bg+sp(cx,cy,{scale:1.5,mood:"scared"})+pts.map(([x,y],i)=>`<g data-hit="${i}" style="cursor:pointer"><circle cx="${x}" cy="${y}" r="18" fill="#000" fill-opacity="0"/><circle id="lg${i}" cx="${x}" cy="${y}" r="9" fill="#1a0507" stroke="#ffd23f" stroke-width="1.4" stroke-dasharray="3 2"/><text id="lt${i}" class="bt" x="${x}" y="${y+4}" text-anchor="middle" font-size="11" fill="#ffd23f" pointer-events="none">?</text></g>`).join("")+(o.over||"")+hud(false),"Count your legs",o.moon!==false,{fear:0});
+  let k=0;const got=new Set();const upd=()=>{const t=$("mt");if(t)t.textContent=`Tap each leg to count it! ${k}/8`};upd();
+  MINI={hit(i){if(got.has(i))return;got.add(i);k++;$("lt"+i).textContent=k;const c=$("lg"+i);c.setAttribute("fill","#3fbf5a");c.removeAttribute("stroke-dasharray");fb(lines[k-1]||"");upd();
+    if(k===8){MINI=null;setTimeout(()=>then(8),1400)}},stop(){}};
+}
+// red light, green light: only move while it looks away
+function freezeGame(need,then){
+  const L=LV(),away=[0,2000,1700,1400,1200,1000][L];
+  $("stage").innerHTML=stage(potty(16,0)+`<g id="fzm" transform="translate(250 0)">${sp(0,168,{mood:"determined",walk:true,scale:.8})}</g>`+elder(316,112,.55,1)+
+    `<g id="fze" visibility="hidden"><circle cx="316" cy="97" r="20" fill="#ff3a2a" opacity=".2"/><ellipse cx="308" cy="97" rx="4.5" ry="3.2" fill="#ff3a2a"/><ellipse cx="324" cy="97" rx="4.5" ry="3.2" fill="#ff3a2a"/></g>`+
+    `<text id="fzw" class="bt" x="316" y="72" text-anchor="middle" font-size="22" fill="#ffd23f" visibility="hidden">!</text>`+
+    `<text id="fzs" class="bt" x="316" y="146" text-anchor="middle" font-size="11" fill="#c9aaa4">zzz...</text>`+hud()+
+    `<rect data-hit="0" width="360" height="220" fill="#000" fill-opacity="0" style="cursor:pointer"/>`,"Starfish freeze mini-game",true,{fear:0});
+  let p=0,strikes=0,state="away",to,live=true,last=0;const t0=Date.now(),T=24000;
+  const upd=()=>{const t=$("mt");if(t)t.textContent=`Sneak! ${p}/${need} · seen ${strikes}/3`};
+  const set=s=>{state=s;const e=$("fze"),w=$("fzw"),z=$("fzs");if(e)e.setAttribute("visibility",s==="look"?"visible":"hidden");if(w)w.setAttribute("visibility",s==="warn"?"visible":"hidden");if(z)z.setAttribute("visibility",s==="away"?"visible":"hidden")};
+  function loop(){if(!live)return;if(Date.now()-t0>T)return done(false);set("away");
+    to=setTimeout(()=>{if(!live)return;set("warn");to=setTimeout(()=>{if(!live)return;set("look");to=setTimeout(loop,rnd(1000,1900))},500)},rnd(away*.5,away*1.3))}
+  function halt(){live=false;clearTimeout(to)}
+  function done(ok){if(!live)return;halt();MINI=null;setTimeout(()=>then({ok,strikes}),600)}
+  upd();loop();
+  MINI={hit(){if(!live)return;
+    if(state==="look"){if(Date.now()-last<800)return;last=Date.now();strikes++;fb(pick(["IT SAW YOU!","FREEZE!!","it's looking right at you..."]));upd();if(strikes>=3)done(false);return}
+    p++;const m=$("fzm");if(m)m.setAttribute("transform",`translate(${(250-p*(190/need)).toFixed(1)} 0)`);if(p%3===0)fb(pick(["sneak...","shhh","tiptoe...","almost..."]));upd();if(p>=need)done(true)},stop:halt};
+}
+// tap floating words in the right order to say an affirmation
+function wordGame(target,decoys,secs,then){
+  const words=[...target,...decoys].map((w,i)=>({w,dec:i>=target.length}));
+  const slots=[[70,86],[180,86],[290,86],[70,134],[180,134],[290,134],[70,180],[180,180],[290,180]].sort(()=>Math.random()-.5);
+  words.forEach((o,i)=>{o.x=slots[i][0]+rnd(-10,10);o.y=slots[i][1]+rnd(-4,4);o.ph=Math.random()*6});
+  $("stage").innerHTML=stage(`<rect width="360" height="220" fill="#000" opacity=".6"/>`+waves(.35)+`<text id="ws" class="bt" x="180" y="56" text-anchor="middle" font-size="16" fill="#c9a8ff">${target.map(()=>"___").join(" ")}</text>`+
+    words.map((o,i)=>{const w=o.w.length*9+26;return `<g data-hit="${i}" id="wd${i}" transform="translate(${o.x} ${o.y})" style="cursor:pointer"><rect x="${-w/2}" y="-14" width="${w}" height="28" rx="12" fill="#2a1030" stroke="#a77bff" stroke-width="1.6"/><text class="bt" y="5" text-anchor="middle" font-size="13" fill="#e9dcff" pointer-events="none">${o.w}</text></g>`}).join("")+hud(),"Say the affirmation mini-game",false,{fear:0});
+  let k=0,miss=0,left=secs,live=true,raf;const said=[];
+  const upd=()=>{const t=$("mt");if(t)t.textContent=`Tap the words in order! ${left}s`;const s=$("ws");if(s)s.textContent=[...said,...target.slice(k).map(()=>"___")].join(" ")};
+  const tick=t=>{words.forEach((o,i)=>{if(o.used)return;const e=$("wd"+i);if(e)e.setAttribute("transform",`translate(${(o.x+Math.sin(t/900+o.ph)*7).toFixed(1)} ${(o.y+Math.cos(t/1100+o.ph)*4).toFixed(1)})`)});if(live)raf=requestAnimationFrame(tick)};raf=requestAnimationFrame(tick);
+  const iv=setInterval(()=>{left--;upd();if(left<=0)done(false)},1000);
+  function halt(){live=false;cancelAnimationFrame(raf);clearInterval(iv)}
+  function done(ok){if(!live)return;halt();MINI=null;setTimeout(()=>then({ok,miss}),1000)}
+  upd();
+  MINI={hit(i){if(!live)return;const o=words[i];if(o.used)return;const e=$("wd"+i);
+    if(!o.dec&&o.w===target[k]){o.used=true;said.push(o.w);k++;if(e){e.querySelector("rect").setAttribute("fill","#3fbf5a");e.style.opacity=".3"}fb(pick(["hmmm...","yes...","*hum*"]));upd();if(k===target.length){fb("it's coming true...");done(true)}}
+    else{miss++;fb(o.dec?`the echo says... "${o.w}"`:"not yet...");if(e){const r=e.querySelector("rect");r.setAttribute("stroke","#e2483d");setTimeout(()=>r.setAttribute("stroke","#a77bff"),400)}}},stop:halt};
+}
+// shiny things fall from the sky: tap them before they land
+function dropGame(n,then){
+  const L=LV(),fall=[0,75,95,115,135,160][L];
+  const SH={cap:`<circle r="8" fill="#ffd23f" stroke="#a57a10" stroke-width="2" stroke-dasharray="2 2"/>`,key:`<circle cx="-6" r="5" fill="none" stroke="#d8dde3" stroke-width="3"/><path d="M-1 0 h12 M8 0 v4 M11 0 v4" stroke="#d8dde3" stroke-width="3"/>`,
+    ring:`<circle r="7" fill="none" stroke="#ffd23f" stroke-width="3"/><circle cy="-8" r="3" fill="#6bc4ff"/>`,spoon:`<ellipse cy="-6" rx="5" ry="7" fill="#d8dde3"/><path d="M0 0 v12" stroke="#d8dde3" stroke-width="3"/>`};
+  const ks=Object.keys(SH),it=Array.from({length:n},(_,i)=>({x:rnd(30,330),st:400+i*850,v:fall+rnd(0,30),k:ks[i%4],res:false}));
+  $("stage").innerHTML=stage([0,1,2,3].map(i=>`<g class="creep" style="animation-delay:${i*.6}s">${raven(60+i*80,34+(i%2)*14,.5,i%2?1:-1)}</g>`).join("")+sp(180,168,{mood:"determined",reach:true})+
+    it.map((o,i)=>`<g data-hit="${i}" id="dr${i}" transform="translate(${o.x} -40)" style="cursor:pointer"><circle r="22" fill="#000" fill-opacity="0"/>${SH[o.k]}<path class="tw" d="M10 -12 l2 4 l4 2 l-4 2 l-2 4 l-2 -4 l-4 -2 l4 -2z" fill="#fff"/></g>`).join("")+hud(),"Catch the shiny things mini-game",true,{fear:0});
+  let got=0,live=true,raf;const t0=performance.now();
+  const upd=()=>{const t=$("mt");if(t)t.textContent=`${got} caught · ${it.filter(o=>!o.res).length} left`};
+  const tick=now=>{const t=now-t0;it.forEach((o,i)=>{if(o.res||t<o.st)return;const y=(t-o.st)/1000*o.v-20;const e=$("dr"+i);
+    if(y>186){o.res=true;if(e)e.remove();fb(pick(["missed!","clink.","the ravens gasp"]));upd()}else if(e)e.setAttribute("transform",`translate(${o.x} ${y.toFixed(1)})`)});
+    if(it.every(o=>o.res))return done();if(live)raf=requestAnimationFrame(tick)};
+  function halt(){live=false;cancelAnimationFrame(raf)}
+  function done(){if(!live)return;halt();MINI=null;setTimeout(()=>then(got),500)}
+  upd();raf=requestAnimationFrame(tick);
+  MINI={hit(i,el){const o=it[i];if(!o||o.res||performance.now()-t0<o.st)return;o.res=true;got++;el.remove();fb(pick(["got it!","shiny!","CAW!","nice catch"]));upd()},stop:halt};
+}
+// tap to switch tracks and dodge what's on the rails
+function trackGame(n,then){
+  const L=LV(),spd=[0,120,150,180,210,250][L],TY=[112,170];
+  const ob=[];let x=440;for(let i=0;i<n;i++){ob.push({x,tr:rnd(0,1),k:pick(["snake","zombie","potty"])});if(Math.random()<.6)ob.push({x:x+rnd(70,95),tr:rnd(0,1),k:"fly"});x+=rnd(170,230)}
+  const D={snake:`<ellipse cy="10" rx="14" ry="4" fill="#4f7d2a"/>`+[-8,0,8].map(d=>`<path d="M0 10 Q${d} 0 ${d*1.3} -10" stroke="#5f8f33" stroke-width="4" fill="none"/><circle cx="${d*1.3}" cy="-10" r="4.5" fill="#6aa336"/><circle cx="${d*1.3}" cy="-11" r="1" fill="#ffd23f"/>`).join(""),
+    zombie:`<rect x="-7" y="-6" width="14" height="18" fill="#6a5a8a"/><path d="M-7 -2 h-10" stroke="#7fa36a" stroke-width="4" stroke-linecap="round"/><circle cy="-14" r="9" fill="#8fb27a"/><circle cx="-3" cy="-15" r="1.6" fill="#1a0507"/><circle cx="3" cy="-14" r="1" fill="#1a0507"/>`,
+    potty:`<rect x="-12" y="-30" width="24" height="42" rx="2" fill="#3d6fb0" stroke="#162740" stroke-width="2"/><path d="M-14 -28 Q0 -38 14 -28Z" fill="#2c5590"/><circle cy="-20" r="3" fill="#ffd96a"/>`,
+    fly:`<circle r="14" fill="#ffd23f" opacity=".15"/>${fly(0,-2)}`};
+  const ties=Array.from({length:17},(_,i)=>TY.map(y=>`<rect x="${i*24}" y="${y+9}" width="6" height="8" fill="#3a2414"/>`).join("")).join("");
+  $("stage").innerHTML=stage(TY.map(y=>`<path d="M0 ${y+10} H360 M0 ${y+15} H360" stroke="#7a6a5a" stroke-width="2.5"/>`).join("")+`<g id="ties">${ties}</g>`+
+    ob.map((o,i)=>`<g id="ob${i}" transform="translate(${o.x} ${TY[o.tr]})">${D[o.k]}</g>`).join("")+
+    `<g id="trn" transform="translate(52 ${TY[1]})"><path d="M60 -14 L130 -26 L130 6 L60 -6z" fill="#fff4a8" opacity=".15"/><rect x="0" y="-22" width="54" height="26" rx="5" fill="#2a3b4a" stroke="#0b1620" stroke-width="2"/><rect x="2" y="-38" width="22" height="18" rx="3" fill="#2a3b4a" stroke="#0b1620" stroke-width="2"/><rect x="6" y="-34" width="14" height="9" fill="#ffb84a" opacity=".85"/><rect x="38" y="-34" width="8" height="12" fill="#1d1d1d"/><circle cx="56" cy="-10" r="4" fill="#fff4a8"/><circle cx="12" cy="7" r="6" fill="#111" stroke="#666"/><circle cx="42" cy="7" r="6" fill="#111" stroke="#666"/></g>`+
+    hud()+`<rect data-hit="0" width="360" height="220" fill="#000" fill-opacity="0" style="cursor:pointer"/>`,"Switch the tracks mini-game",true,{fear:0});
+  let cur=1,ty=TY[1],hits=0,flies=0,live=true,raf,prev=performance.now(),dist=0;
+  const upd=()=>{const t=$("mt");if(t)t.textContent=`Crashes ${hits} · ${ob.filter(o=>!o.res&&o.k!=="fly").length} to go`};
+  const tick=now=>{const dt=Math.min(.05,(now-prev)/1000);prev=now;dist+=spd*dt;ty+=(TY[cur]-ty)*Math.min(1,dt*14);
+    const tr=$("trn");if(tr)tr.setAttribute("transform",`translate(52 ${ty.toFixed(1)})`);const ti=$("ties");if(ti)ti.setAttribute("transform",`translate(${(-(dist%24)).toFixed(1)} 0)`);
+    ob.forEach((o,i)=>{if(o.res)return;o.x-=spd*dt;const e=$("ob"+i);
+      if(o.x>44&&o.x<114&&o.tr===cur&&Math.abs(ty-TY[cur])<14){o.res=true;if(e)e.remove();if(o.k==="fly"){flies++;fb("+1 fly")}else{hits++;fb(pick(["CRASH!","BONK!","oof!","sorry!!"]));flash()}upd();return}
+      if(o.x<-30){o.res=true;if(e)e.remove();upd();return}if(e)e.setAttribute("transform",`translate(${o.x.toFixed(1)} ${TY[o.tr]})`)});
+    if(ob.every(o=>o.res))return done();if(live)raf=requestAnimationFrame(tick)};
+  function halt(){live=false;cancelAnimationFrame(raf)}
+  function done(){if(!live)return;halt();MINI=null;setTimeout(()=>then({hits,flies}),500)}
+  upd();raf=requestAnimationFrame(tick);
+  MINI={hit(){if(!live)return;cur=1-cur;fb(cur?"down!":"up!")},stop:halt};
+}
+
+/* ---------- the stories ---------- */
+const nameCh=(names,ic,key,line)=>names.map(n=>({label:`Name it ${n}`,ic,go:()=>{S[key]=n;scare(-10)},say:line(n)}));
+const STORY={
+raven:{
+ 1:{title:"The Raven Method",tip:"A raven is watching you.",start:"wake",beats:{
+  wake:{where:"Flat on your back",text:"You open your eyes. You're still lying like a starfish, arms and legs spread out. But the ground is cold dirt, and it smells terrible. On top of a porta potty, a raven is watching you. It hasn't blinked once.",
+   scene:()=>stage(potty(250,0)+stink(256,106)+raven(272,104)+`<ellipse cx="130" cy="188" rx="62" ry="7" fill="#2a0709"/>`+sp(130,174,{mood:"sleep"})+bubble(150,30,"CAW.",50),"You lying like a starfish, a raven watching from a porta potty"),
+   ch:[{label:"Stay still like a starfish",ic:"star",say:"You don't move a muscle. The raven tilts its head. Then it hops down and lands right on your chest. It's heavier than it looks. It hops off toward a puddle.",go:()=>scare(-6),to:"puddle"},
+       {label:"Sit up fast",say:"You sit up fast. The raven screams. You scream. It flaps down next to a puddle, still screaming at you.",go:()=>scare(5),to:"puddle"}]},
+  puddle:{where:"The puddle",text:"The raven taps the puddle with its beak. Tap. Tap. Tap. It wants you to look. In the water there's a face. Your face. And under your face, in the water... a lot of legs.",
+   scene:()=>stage(puddle(220,190,70)+reflect(220,190,sp(220,168,{mood:"scared"}),70)+raven(286,176,.75,-1,"")+sp(120,168,{mood:"scared",reach:true})+bubble(70,92,"is that... me?",110),"Your reflection in a puddle"),
+   ch:[{label:"Count the legs",game:{how:"Tap each leg to count it.",run:cb=>legGame(puddle(180,196,120)+raven(318,64,.8,-1),["one...","two...","three...","four?","five??","six?!","seven...","EIGHT?!"],cb)},
+        after:()=>({say:"Eight. You have eight legs. A hairy spider body, with your head on top. The raven looks very proud of itself, like it planned this."}),to:"crawly"},
+       {label:"Splash the puddle",say:"You splash the puddle with one leg. Then you notice it's a hairy spider leg. So are the other seven.",go:()=>scare(6),to:"crawly"}]},
+  crawly:{where:"Something big",scary:1,text:"The raven's feathers puff up. It stares past you into the bushes. Something huge is crawling out. Way more than eight legs. Two red eyes. Then the raven does something weird: it flops on its back, wings out. Like a starfish. Perfectly still.",
+   scene:()=>stage(elder(300,120,.6)+`<g transform="translate(200 180) rotate(180)">${raven(0,0,.7,1,"")}</g>`+sp(110,168,{mood:"scared"})+bubble(40,92,"what is THAT?",100),"A huge shadow spider, and a raven playing dead"),
+   ch:[{label:"Freeze like a starfish",ic:"star",game:{how:"Sneak to the porta potty. Only move while it looks away!",run:cb=>freezeGame(12,cb)},
+        after:r=>{if(r.ok){S.items.starfish=1;scare(-10);return {say:"Every time it looked, you were a starfish. Every time it looked away, you crept. You made it behind the porta potty and it never saw you. The raven caws softly. That was the Starfish Trick."}}smell(6);return {say:"It turns too fast and sees you move. It leans in close... sniffs you... and sneezes. Then it crawls away. Maybe you smell too bad to eat."}},to:"mo"},
+       {label:"Run for it",game:{how:"Tap the stage as fast as you can!",run:cb=>chaseGame(24,6,cb)},
+        after:w=>{scare(w?-4:8);return {say:w?"You run so fast your legs blur. Behind you, the huge thing stops at the edge of the bushes. It doesn't come out any further.":"It's faster than you. Its shadow falls over you... and keeps going. It wasn't chasing you. It was chasing the raven. The raven is fine. The raven is laughing."}},to:"mo"}]},
+  mo:{where:"A lantern",enter:()=>{if(!S.pals.length)addPal()},
+   text:()=>`A lantern bobs out of the dark. It's a spider-person, like you. "${S.items.starfish?"You did the Starfish Trick on your FIRST night? Nobody does that.":"You survived the Big Crawly. Not bad for new legs."} I'm ${S.pals[0]}." The raven lands on the lantern like it owns it. ${S.pals[0]} leans in close. ${RULES}`,
+   scene:()=>stage(potty(20,0)+sp(110,168,{mood:"scared"})+pal(220,168,{flip:true})+lantern(256,128)+raven(256,104,.6,-1)+bubble(150,60,"relax, newbie",104),"A spider-person with a lantern and a raven on top"),
+   ch:[{label:"Ask about the raven",say:()=>`"Is that your raven?" you ask. "Nope," says ${S.pals[0]}. "Pretty sure it's yours. It came in with you." Then the lantern walks away. The raven stays.`},
+       {label:"Say thank you",say:()=>`"Thanks," you say. "Don't thank me yet," says ${S.pals[0]}, and disappears into the red dark. The raven stays.`}]}},
+  end:say=>({where:"Your first night",text:say+" You find a rock to sleep on. The raven sleeps on your head. Every time you close your eyes, you hear knocking. You don't sleep much.",
+   scene:stage(home()+sp(64,160,{mood:"scared",scale:.9})+raven(64,112,.5,1,"")+eyePair(250,176,"#ffd23f",1,"lurk",.3)+eyePair(310,168,"#ff3a2a",1,"lurk",1.6)+bubble(110,80,"night, bird.",96),"You on your rock with a raven on your head"),
+   log:"Shifted with the Raven method. "+(S.items.starfish?"Did the Starfish Trick. ":"")+"Met Mo and a raven."})},
+ 2:{title:"The Shiny Trail",tip:"The raven is gone.",start:"gone",beats:{
+  gone:{where:"Your rock",text:"You wake up and the raven is gone. On your rock, it left three things in a row: a shiny bottle cap, a snake scale, and a fly. More shiny things glint off into the dark. It's a trail.",
+   scene:()=>homeScene(shinyTrail(),{mood:"scared"}),
+   ch:[{label:"Follow the shiny trail",say:"You follow the shiny things into the dark. Glint. Glint. Glint.",to:"fork"},
+       {label:"Eat the fly first",say:"You eat the fly. Cold. Crunchy. Then you feel a little bad. The raven was trying to tell you something. You follow the trail.",go:()=>hungry(8),to:"fork"}]},
+  fork:{where:"The fork",text:"The trail splits in two. Left: bottle caps, going toward Porta Potty Row. Right: snake scales, going into the Snake Fields. From somewhere far away, very faintly: caw.",
+   scene:()=>stage(`<path d="M180 210 L180 168 L80 128 M180 168 L280 128" stroke="#3a1a1a" stroke-width="16" stroke-linecap="round" fill="none"/>`+[[150,156],[120,144],[96,134]].map(([x,y],i)=>`<circle class="tw" style="animation-delay:${i*.3}s" cx="${x}" cy="${y}" r="3.5" fill="#ffd23f"/>`).join("")+[[210,156],[240,144],[264,134]].map(([x,y],i)=>`<ellipse class="tw" style="animation-delay:${i*.3}s" cx="${x}" cy="${y}" rx="4" ry="2.5" fill="#7fdc6a"/>`).join("")+
+     `<text class="bt" x="70" y="116" text-anchor="middle" font-size="11" fill="#ffd23f">POTTY ROW</text><text class="bt" x="290" y="116" text-anchor="middle" font-size="11" fill="#7fdc6a">SNAKE FIELDS</text>`+sp(180,178,{mood:"determined",scale:.8})+bubble(160,40,"caw...?",64),"A fork in the shiny trail"),
+   ch:[{label:"Follow the bottle caps",to:"potty"},{label:"Follow the snake scales",to:"snake"}]},
+  potty:{where:"Porta Potty Row",scary:1,text:"The bottle caps stop at one porta potty. It's knocking. Tap-tap-tap-tap. Too fast for a hand. Too pointy. Mo said never knock back... but nobody said anything about opening the door.",
+   scene:()=>stage(potty(190,0,1)+potty(250,0)+[[150,186],[165,188]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3" fill="#ffd23f"/>`).join("")+sp(90,168,{mood:"scared",reach:true})+bubble(40,92,"...hello?",72),"A knocking porta potty"),
+   ch:[{label:"Yank the door open",say:"You yank it open. The raven tumbles out on top of a mountain of shiny junk: bottle caps, keys, a spoon, a tiny ring. It was hiding its treasure pile. It looks at you. You look at it. It drops the spoon at your feet. A bribe.",go:()=>{S.flies+=2},to:"gift"},
+       {label:"Hold your nose and peek",say:"You hold your nose with two legs and open the door a crack with two more. One shiny eye looks back. It's the raven, sitting on a treasure pile of bottle caps and keys. It looks embarrassed.",go:()=>smell(6),to:"gift"}]},
+  snake:{where:"Snake Fields",scary:1,text:"The scales lead to a 3-headed snake. The middle head has the raven in its mouth! Only the tail feathers are sticking out. Muffled, very angry cawing is coming from inside.",
+   scene:()=>stage(snakeIdle()+`<path d="M246 64 l-6 -10 M252 62 l0 -12 M258 64 l6 -10" stroke="#050101" stroke-width="4" stroke-linecap="round"/>`+sp(95,168,{mood:"determined"})+bubble(40,96,"LET GO!",70),"A snake with a raven in its mouth"),
+   ch:[{label:"Bonk the heads!",game:{how:"Bonk the glowing head before it bites!",run:cb=>snakeGame(5,cb)},
+        after:b=>{S.heads+=b;return {say:b>=3?`You bonk ${b} heads. The middle one goes "PTOOO" and spits out the raven. It's soggy, furious, and fine.`:`Only ${b} bonks, but the snake gets so dizzy it sneezes the raven out anyway.`}},to:"gift"},
+       {label:"Trade a bottle cap",say:"You hold up a shiny bottle cap. All three heads go \"ooooh.\" The middle head spits out the raven to grab it. Fair trade.",to:"gift"}]},
+  gift:{where:"Back home",text:"Back at your rock, the raven drops something in front of you: a long black feather that shimmers purple when you move it. It caws once. Then it starts building a nest. On your rock. Right next to your head.",
+   scene:()=>homeScene(feather(236,150)+raven(100,170,.6,-1),{mood:"happy",reach:true}),
+   ch:[{label:"Keep the feather",say:"You tuck the feather behind your ear. Do spiders have ears? You have a place for a feather, anyway.",go:()=>{S.items.feather=1}},
+       {label:"Try to give it back",say:"You hold it out to the raven. It drops it right back in front of you. And again. And again. Okay. You're keeping it.",go:()=>{S.items.feather=1}}]}},
+  end:say=>({where:"Night 2 is over",text:say+" The raven finishes its nest and falls asleep in it, one eye open, watching the dark for you.",scene:homeScene(raven(100,170,.6,-1,""),{mood:"sleep"}),log:"Followed the shiny trail. Rescued the raven. Got a raven feather."})},
+ 3:{title:"The Raven Court",tip:"Hundreds of ravens. All looking at you.",start:"court",beats:{
+  court:{where:"Porta Potty Row",scary:1,text:"Tonight, every porta potty on the row has a raven on top. Then the bushes fill up with ravens. Then the sky. Hundreds of them, all staring at you. Your raven hops onto a bucket like a judge. CAW. Court is in session. You're on trial for... being new.",
+   scene:()=>stage(potties()+[210,260,310].map((x,i)=>raven(x,106,.75,i%2?1:-1)).join("")+[30,80,130,180].map((x,i)=>raven(x,40+(i%2)*18,.5,i%2?1:-1)).join("")+`<rect x="140" y="172" width="24" height="18" fill="#5a5a5a"/>`+raven(152,160,.7,-1,"")+sp(90,168,{mood:"scared"})+bubble(20,96,"on trial?!",80),"A court of ravens"),
+   ch:[{label:"Bow to the court",say:"You bow with all eight legs. That's a LOT of bowing. The ravens nod. A few of them bow back.",to:"test"},
+       {label:"Do the starfish",ic:"star",say:"You flop on your back like a starfish. Every raven gasps. In raven, that's the most polite thing you can possibly do.",go:()=>scare(-5),to:"test"}]},
+  test:{where:"The test",text:"Your raven caws three times. Every raven takes off at once and circles over your head in a giant black loop. Then they start dropping shiny things. This is the test: catch them before they hit the ground.",
+   scene:()=>stage([0,1,2,3,4,5].map(i=>raven(60+i*50,40+(i%2)*24,.55,i%2?1:-1)).join("")+sp(180,168,{mood:"determined"})+`<circle class="tw" cx="120" cy="100" r="5" fill="#ffd23f"/><circle class="tw" cx="240" cy="80" r="5" fill="#d8dde3"/>`,"Ravens circling and dropping shiny things"),
+   ch:[{label:"Catch the shinies!",game:{how:"Tap the shiny things before they hit the ground!",run:cb=>dropGame(12,cb)},after:n=>{S.flies+=Math.floor(n/2);S.shinies=n;return {}},to:"verdict"}]},
+  verdict:{where:"The verdict",enter:()=>{S.taught=!S.items.starfish;S.items.starfish=1},
+   text:()=>`${S.shinies>=9?`You caught ${S.shinies}. The ravens go completely silent. Then all at once: CAW! CAW! CAW! You are an honorary raven.`:`You caught ${S.shinies}. The ravens argue for a long time. Your raven caws louder than all of them. Verdict: you can stay.`}${S.taught?" Then they teach you the Starfish Trick: lie flat, stay perfectly still, and nothing in the dark can see you.":""} Your raven lands on your head and stays there. It wants a name.`,
+   scene:()=>stage(potties()+confetti()+[210,260,310].map((x,i)=>raven(x,106,.75,i%2?1:-1)).join("")+sp(140,168,{mood:"happy"})+raven(140,118,.6,1,"")+bubble(160,64,"caw?",48),"Your raven waiting for a name"),
+   ch:nameCh(["Inky","Sir Caws-a-Lot","Pepper"],"raven","ravenName",n=>`"${n}," you say. The raven puffs up so big it almost pops. ${n} caws, and every raven in the sky caws back.`)}},
+  end:say=>({where:"Night 3 is over",text:say+` ${S.ravenName} moves into your home for good. It sleeps on your head, which is weird, but warm. Nothing sneaks up on you anymore.`,scene:homeScene("",{mood:"sleep"}),log:`Passed the Raven Court. Named the raven ${S.ravenName}.`})}
+},
+julia:{
+ 1:{title:"The Julia Method",tip:"Hmmmmmmmm...",start:"hum",beats:{
+  hum:{where:"The humming",text:"You can still hear the theta waves. Hmmmmmm. But your headphones are gone. The humming is coming from the dark all around you. Then a soft voice whispers: \"You are... in the Spider Verse.\"",
+   scene:()=>stage(`<rect width="360" height="220" fill="#000" opacity=".9"/>`+waves()+eyePair(270,166,"#ffd23f",1.4,"blink")+`<text class="bt breathe" x="180" y="200" text-anchor="middle" font-size="13" fill="#c9a8ff">you are... you are...</text>`,"Humming waves in the dark, and two eyes",false,{fear:0}),
+   ch:[{label:"Say \"I am brave\"",say:"\"I am brave,\" you whisper. Your voice shakes, so you say it again. The humming gets quieter. Like it's listening.",go:()=>scare(-6),to:"echo"},
+       {label:"Follow the humming",say:"You crawl toward the humming. It stops. Right in front of your face, two eyes blink open. \"...hi,\" they say. Then they're gone.",go:()=>scare(4),to:"echo"}]},
+  echo:{where:"The echo",text:"Everything you say comes back a few seconds later, from the dark, in your own voice. You say \"hello.\" ...\"hello.\" You say \"where am I?\" ...\"the Spider Verse.\" That is NOT what you said.",
+   scene:()=>stage(`<rect width="360" height="220" fill="#000" opacity=".85"/>`+waves(.6)+sp(110,168,{mood:"scared"})+bubble(50,92,"where am I?",96)+`<text class="bt breathe" x="260" y="80" text-anchor="middle" font-size="14" fill="#c9a8ff">...the Spider Verse...</text>`,"Your words echoing back",false,{fear:0}),
+   ch:[{label:"Ask: \"What am I?\"",say:"\"What am I?\" you ask. The echo answers right away this time: \"...count your legs.\"",to:"legs"},
+       {label:"Say \"I am going home\"",say:"\"I am going home,\" you say. The echo giggles. \"...in one year.\"",go:()=>scare(5),to:"legs"}]},
+  legs:{where:"Purple light",text:"A soft purple glow lights up around you, and for the first time you can see your own body. You start counting. The echo counts with you.",
+   scene:()=>stage(`<rect width="360" height="220" fill="#000" opacity=".8"/><circle class="glow" cx="160" cy="140" r="80" fill="#a77bff" opacity=".2"/>`+sp(160,168,{mood:"scared"}),"Purple light on your body",false,{fear:0}),
+   ch:[{label:"Count with the echo",game:{how:"Tap each leg. The echo counts with you.",run:cb=>legGame(`<rect width="360" height="220" fill="#000" opacity=".75"/><circle class="glow" cx="180" cy="130" r="95" fill="#a77bff" opacity=".2"/>`,["one... (one...)","two... (two...)","three... (three...)","four... (four...)","five... (five...)","six... (six...)","seven... (seven...)","EIGHT?! (eight!)"],cb,{moon:false})},
+        after:()=>({say:"Eight. \"Eight!\" says the echo, very happy about it. You have a spider body. A hairy one."}),to:"words"},
+       {label:"Don't look",say:"You squeeze your eyes shut. The echo counts anyway. \"...six... seven... eight.\" You peek. It's right. Eight hairy spider legs. All yours.",go:()=>scare(5),to:"words"}]},
+  words:{where:"The words in the dark",scary:1,text:"Shapes crawl toward you. Lots of legs. Glowing eyes. Then glowing words float up out of the dark, humming. The echo whispers: \"Say it right... and it comes true. A little.\"",
+   scene:()=>stage(`<rect width="360" height="220" fill="#000" opacity=".6"/>`+[["I",80,60],["AM",130,46],["SAFE",200,64],["HERE",270,44]].map(([w,x,y],i)=>`<text class="bt breathe" style="animation-delay:${i*.5}s" x="${x}" y="${y}" font-size="18" fill="#c9a8ff">${w}</text>`).join("")+sp(100,168,{mood:"scared"})+`<g class="creep">${shadowSp(250,168)+shadowSp(310,170,{scale:.8})}</g>`,"Glowing words and crawling shapes"),
+   ch:[{label:"Say it right",ic:"talk",game:{how:"Tap the words in order to say: I AM SAFE HERE",run:cb=>wordGame(["I","AM","SAFE","HERE"],["SCARED","LOST","SNACK"],15,cb)},
+        after:r=>{if(r.ok){scare(-15);S.items.words=1;return {say:"\"I AM SAFE HERE.\" The humming gets loud and warm, and the shapes stop like they walked into a wall. They back away. It worked. A little."}}scare(4);return {say:"You get tangled up and say \"I AM SNACK HERE.\" The shapes look VERY interested. Then a lantern swings out of the dark."}},to:"mo"},
+       {label:"Hum back",say:"You hum the same note as the dark. The shapes stop. They tilt their heads. One of them hums back, off-key.",go:()=>scare(-5),to:"mo"}]},
+  mo:{where:"A lantern",enter:()=>{if(!S.pals.length)addPal()},
+   text:()=>`A lantern swings out of the dark. It's a spider-person, like you. "You've got the Hum on you," they say. "I can hear it. Not many people come in humming. I'm ${S.pals[0]}." They lean in close. ${RULES}`,
+   scene:()=>stage(waves(.3)+sp(110,168,{mood:"scared"})+pal(220,168,{flip:true})+lantern(256,128)+bubble(150,60,"you hum too?",100),"A spider-person with a lantern"),
+   ch:[{label:"Ask what the Hum is",say:()=>`"What IS the Hum?" you ask. "Nobody knows," says ${S.pals[0]}. "Something big, under the hill. It likes people who talk nice to themselves." Then the lantern is gone.`},
+       {label:"Say thank you",say:()=>`"Thanks," you say. "Don't thank me," says ${S.pals[0]}. "Thank the Hum." Then they're gone.`}]}},
+  end:say=>({where:"Your first night",text:say+" You find a rock to sleep on. You whisper \"I am okay\" until you fall asleep. Somewhere deep under the ground, something whispers it back.",
+   scene:stage(home()+waves(.3)+sp(64,160,{mood:"sleep",scale:.9})+eyePair(250,176,"#ffd23f",1,"lurk",.3)+bubble(100,86,"I am okay...",104),"You on your rock, humming"),
+   log:"Shifted with the Julia method. "+(S.items.words?"Said it right: I AM SAFE HERE. ":"")+"Met Mo and heard the Hum."})},
+ 2:{title:"The Echo Cave",tip:"The ground is humming.",start:"hill",beats:{
+  hill:{where:"Red Sky Hill",text:"The humming is coming from under Red Sky Hill. There's a crack in the side of the hill, glowing purple. Words are written all around it in glowing web: I AM. I AM. I AM.",
+   scene:()=>stage(hill()+`<path class="glow" d="M180 112 l6 14 l-5 12 l7 16 l-4 22 l3 14" stroke="#c9a8ff" stroke-width="5" fill="none"/>`+[["I AM",120,150],["I AM",222,156],["I AM",150,180]].map(([w,x,y],i)=>`<text class="bt breathe" style="animation-delay:${i*.6}s" x="${x}" y="${y}" font-size="11" fill="#c9a8ff">${w}</text>`).join("")+sp(70,168,{mood:"scared"}),"A glowing crack in the hill",false),
+   ch:[{label:"Squeeze inside",say:"You squeeze through the crack. It's a tight fit with eight legs.",to:"cave"},
+       {label:"Hum at the crack first",say:"You hum. The hill hums back, in harmony. That's probably an invitation. You squeeze inside.",to:"cave"}]},
+  cave:{where:"The Echo Cave",text:"Inside is a huge cave. In the middle, a pool of purple light. The echo whispers from every wall at once: \"Pick one. Say it right... and it comes true. A little.\"",
+   scene:()=>caveScene(sp(110,168,{mood:"scared",scale:.85})),
+   ch:[{label:"\"I am glowing\"",ic:"star",game:{how:"Tap the words in order: I AM GLOWING",run:cb=>wordGame(["I","AM","GLOWING"],["GROWING","GLUE-ING","GROANING"],12,cb)},
+        after:r=>{if(r.ok){S.items.glow=1;scare(-10);return {say:"\"I AM GLOWING.\" You start to glow. Just a little. Soft purple, all over. The eyes in the bushes really, really don't like it."}}S.flies+=3;return {say:"You mix it up and say \"I AM GLUE-ING.\" For the rest of the night, everything sticks to you. Three flies, a leaf, and one very confused snail."}},to:"breath"},
+       {label:"\"I am never hungry\"",ic:"fly",game:{how:"Tap the words in order: I AM NEVER HUNGRY",run:cb=>wordGame(["I","AM","NEVER","HUNGRY"],["ALWAYS","HUNGRIER","NEVERMIND"],14,cb)},
+        after:r=>{if(r.ok){S.items.belly=1;hungry(40);return {say:"\"I AM NEVER HUNGRY.\" Your stomach goes quiet and warm, like you just ate a hundred cold flies. You'll get hungry a lot slower now."}}hungry(-20);return {say:"You say \"I AM ALWAYS HUNGRY.\" Uh oh. Your stomach growls so loud the echo growls back."}},to:"breath"},
+       {label:"\"I am friends with everyone\"",ic:"spider",game:{how:"Tap the words in order: I AM FRIENDS WITH EVERYONE",run:cb=>wordGame(["I","AM","FRIENDS","WITH","EVERYONE"],["FRIES","SNAKES","NOBODY"],16,cb)},
+        after:r=>{if(r.ok){S.items.friendly=1;const a=addPal(),b=addPal();scare(-8);return {say:`"I AM FRIENDS WITH EVERYONE." When you climb out of the cave, two spider-people are waiting. "We don't know why," says ${a}, "but we feel like we're your friends now." ${b} nods.`}}S.heads+=3;return {say:"You say \"I AM FRIENDS WITH SNAKES.\" A very friendly 3-headed snake follows you around all night, trying to hug you with all three heads."}},to:"breath"}]},
+  breath:{where:"Something moves",scary:1,text:"As you turn to leave, the whole cave breathes in. Something enormous shifts in the dark behind the pool. Two eyes the size of porta potties open, glowing soft purple. They look at you. They close. The humming goes on.",
+   scene:()=>caveScene(`<g class="breathe">${eyePair(220,90,"#c9a8ff",4,"")}</g>`+sp(110,168,{mood:"scared",scale:.85})),
+   ch:[{label:"Whisper \"goodnight\"",say:"\"Goodnight,\" you whisper. The humming goes a little lower. You're pretty sure that was goodnight back."},
+       {label:"Back away slowly",say:"You back out of the cave very, very slowly. The humming follows you all the way home. It sounds like it's smiling."}]}},
+  end:say=>({where:"Night 2 is over",text:say+" You fall asleep thinking about those eyes. They didn't look mean. They looked tired.",scene:homeScene(waves(.3),{mood:"sleep"}),
+   log:"Found the Echo Cave. "+(S.items.glow?"Started glowing. ":S.items.belly?"Never hungry now. ":S.items.friendly?"Made two friends with words. ":"Said the words wrong. ")+"Saw the eyes under the hill."})},
+ 3:{title:"The Hum",tip:"The Hum has stopped.",start:"quiet",beats:{
+  quiet:{where:"Silence",scary:1,text:"You wake up and something is wrong. It's quiet. Totally quiet. The Hum stopped. Without it, you can hear EVERYTHING. Snakes hissing. Porta potties knocking. Eyes blinking in the bushes. Blink. Blink. Blink.",
+   scene:()=>homeScene(eyePair(250,120,"#ffd23f",1.2,"lurk")+eyePair(320,150,"#ff3a2a",1,"lurk",1.2)+eyePair(230,60,"#ff3a2a",1,"lurk",2.2)+bubble(110,82,"...Hum?",64),{mood:"scared"}),
+   ch:[{label:"Run to the cave",say:"You run all the way to the hill. The crack isn't glowing anymore. You go in.",to:"trapped"},
+       {label:"Hum it yourself",say:"You hum the Hum note. Your voice is tiny. But far away, under the hill, something tries to hum back... and can't. You run to the cave.",to:"trapped"}]},
+  trapped:{where:"The Echo Cave",scary:1,text:"The pool is dark. Lying next to it is a giant moth, glowing very, very faintly. It IS the Hum. Its wings are tangled in sticky web. Somebody trapped it. It looks at you with huge, tired eyes. It needs to hear the words.",
+   scene:()=>caveScene(moth(220,110,1.3,1)+web(220,104,62)+`<path d="M160 70 L280 150 M170 150 L270 64 M150 110 H290" stroke="#f4e9e4" stroke-width="1.5" opacity=".7"/>`+sp(90,168,{mood:"scared",scale:.85})),
+   ch:[{label:"Say the words",ic:"talk",game:{how:"Tap the words in order: YOU ARE NOT ALONE",run:cb=>wordGame(["YOU","ARE","NOT","ALONE"],["LOST","STUCK","SCARED"],15,cb)},
+        after:r=>({say:r.ok?"\"YOU ARE NOT ALONE.\" The words float out of your mouth, glowing, and land on the moth's wings. The sticky web melts like snow. The Hum starts again, so loud the whole cave shakes.":"You trip over the words. You start over. And over. You keep saying them until you get them right: \"You are not alone.\" The sticky web melts. The Hum starts again."}),to:"small"},
+       {label:"Pull the web off",say:"You pull with all eight legs. The web is sticky and gross and it takes forever. You whisper \"you are not alone\" the whole time. Finally the last strand snaps. The Hum starts again.",go:()=>scare(-4),to:"small"}]},
+  small:{where:"A new hum",text:"The moth shakes out its wings. Then it starts to shrink. And shrink. Until it's the size of your hand. It flutters onto your shoulder and hums, right in your ear. It wants to come home with you. It needs a name.",
+   scene:()=>caveScene(sp(160,168,{mood:"happy"})+moth(186,124,.35)),
+   ch:nameCh(["Luna","Theta","Hummy"],"moon","mothName",n=>`"${n}," you say. ${n} hums a happy little note, and every word on the cave walls lights up at once.`)}},
+  end:say=>({where:"Night 3 is over",text:say+` ${S.mothName} lives with you now. Every night it hums you to sleep. The eyes in the bushes stay a lot further back.`,scene:homeScene("",{mood:"sleep"}),log:`Saved the Hum. Named the moth ${S.mothName}.`})}
+},
+train:{
+ 1:{title:"The Train Method",tip:"Last stop. Everybody off.",start:"station",beats:{
+  station:{where:"Spider Verse Station",text:"SCREEEECH. The train stops. A sign outside says SPIDER VERSE STATION. The doors slide open by themselves. Everyone else on the train is gone. Their seats are still warm.",
+   scene:()=>stage(trainCar()+sp(195,172,{scale:.7,mood:"scared"})+`<g class="creep">${shadowSp(320,170,{scale:.7})}</g>`+bubble(40,52,"where is everybody?",150),"A train stopped at Spider Verse Station"),
+   ch:[{label:"Step off the train",say:"You step onto the platform. The doors slam shut behind you.",go:()=>scare(-3),to:"window"},
+       {label:"Hide under the seat",say:"You squeeze under a seat. A voice on the speaker says: \"Last stop. Everybody off. That means YOU.\" You get off.",go:()=>scare(6),to:"window"}]},
+  window:{where:"The train window",text:"The train's dark window is like a mirror. There you are. Your face. Your hair. And under your face, where your body should be... legs. Lots of legs. The reflection looks just as surprised as you.",
+   scene:()=>stage(trainCar()+`<rect x="76" y="110" width="40" height="28" rx="4" fill="#0b1620"/>`+sp(96,134,{scale:.32,mood:"scream"})+sp(150,172,{mood:"scream",scale:.8})+bubble(160,56,"what am I?!",92),"Your reflection in the train window"),
+   ch:[{label:"Count the legs",game:{how:"Tap each leg in the reflection to count it.",run:cb=>legGame(`<rect x="60" y="30" width="240" height="166" rx="16" fill="#0b1620" stroke="#2a3b4a" stroke-width="10"/><path d="M90 52 l40 -12 M100 72 l60 -18" stroke="#fff" stroke-width="3" opacity=".12"/>`,["one...","two...","three...","four...","five...","six... (the reflection is counting too)","seven...","EIGHT?!"],cb)},
+        after:()=>({say:"Eight. Then the reflection waves at you with one of them. You didn't wave."}),to:"ticket"},
+       {label:"Don't look",say:"You turn away from the window. Behind you, the glass knocks. Tap tap. You look. Eight legs. Your legs. The reflection waves. You didn't wave.",go:()=>scare(6),to:"ticket"}]},
+  ticket:{where:"The conductor",scary:1,text:"At the end of the platform stands a tall spider-person in a long coat and a conductor's hat. It has no face. Just smooth, dark nothing. It holds out a ticket with your name on it. ONE WAY. With 365 little circles on it.",
+   scene:()=>stage(`<rect x="0" y="190" width="360" height="6" fill="#3a2424"/>`+conductor(270,168,0)+ticketSvg(204,118)+sp(110,168,{mood:"scared"})+bubble(40,92,"um. thanks?",88),"A faceless conductor holding out a ticket"),
+   ch:[{label:"Take the ticket",ic:"ticket",say:"You take it. The conductor punches one circle. CLICK. \"Night one,\" it says, from nowhere. Then it's just... not there anymore.",go:()=>{S.items.ticket=1},to:"rumble"},
+       {label:"Ask where its face is",say:"\"Where's your face?\" you ask. It tilts its head. \"Lost it,\" it says, from nowhere. \"Lost and found is closed.\" It pushes the ticket into your leg, punches one circle, CLICK, and is gone.",go:()=>{S.items.ticket=1},to:"rumble"}]},
+  rumble:{where:"The tracks",scary:1,text:"RUMBLE. The train doors fly open again. Shadows pour out of every car. Lots of legs. Glowing eyes. All coming for the new passenger. You. Right next to you on the tracks: an old handcar.",
+   scene:()=>stage(trainCar()+`<g class="creep">${shadowSp(150,172,{scale:.7})+shadowSp(100,172,{scale:.6})}</g><rect x="250" y="178" width="54" height="10" fill="#5b3d24"/><path d="M277 178 v-16 M262 162 h30" stroke="#5b3d24" stroke-width="4"/>`+sp(300,166,{mood:"scared",scale:.8})+bubble(240,84,"GO GO GO",80),"Shadows pouring out of the train"),
+   ch:[{label:"Jump on the handcar",ic:"train",game:{how:"Tap to switch tracks. Dodge everything!",run:cb=>trackGame(6,cb)},
+        after:r=>{S.flies+=r.flies;scare(r.hits<=1?-8:4);return {say:r.hits<=1?`You switch tracks like a pro and roll right out of the station.${r.flies?` You even grab ${r.flies} flies on the way.`:""} The shadows don't follow.`:`You crash through ${r.hits} things, but you make it out of the station. You smell like snake now.`}},to:"mo"},
+       {label:"Hide in the luggage rack",say:"You curl up between the suitcases. One of the suitcases is breathing. Before you can scream, a lantern shines in your face.",go:()=>scare(4),to:"mo"}]},
+  mo:{where:"A lantern",enter:()=>{if(!S.pals.length)addPal()},
+   text:()=>`It's a spider-person with a lantern. "Came on the night train? That train only goes one way. I'm ${S.pals[0]}." They lean in close. ${RULES} Then they tap your ticket. "And hang on to that. Don't lose it."`,
+   scene:()=>stage(`<rect x="0" y="190" width="360" height="6" fill="#3a2424"/>`+sp(110,168,{mood:"scared"})+pal(220,168,{flip:true})+lantern(256,128)+ticketSvg(150,112,.6)+bubble(170,60,"relax, newbie",104),"A spider-person with a lantern"),
+   ch:[{label:"Ask why",say:()=>`"Why?" you ask. "Because that's how you get home," says ${S.pals[0]}, and walks off into the red dark.`},
+       {label:"Say thank you",say:()=>`"Thanks," you say. "Don't thank me yet," says ${S.pals[0]}, and disappears into the red dark.`}]}},
+  end:say=>({where:"Your first night",text:say+" You find a rock to sleep on and hold your ticket tight. Far away, a train whistles. Every time you close your eyes, you hear knocking.",
+   scene:stage(home()+sp(64,160,{mood:"scared",scale:.9})+ticketSvg(112,146,.5)+eyePair(250,176,"#ffd23f",1,"lurk",.3)+eyePair(310,168,"#ff3a2a",1,"lurk",1.6)+bubble(100,80,"don't lose it...",116),"You on your rock with your ticket"),
+   log:"Shifted with the Train method. Got a one-way ticket. Met Mo."})},
+ 2:{title:"Lost Luggage",tip:"Your luggage has arrived.",start:"case",beats:{
+  case:{where:"Your rock",scary:1,text:"There's a suitcase on your rock. It has a tag: YOU. You didn't bring a suitcase. It's wobbling. Something inside is humming a train song.",
+   scene:()=>homeScene(suitcase(250,190,1)+`<text class="bt breathe" x="250" y="140" text-anchor="middle" font-size="11" fill="#c9aaa4">choo choo...</text>`,{mood:"scared"}),
+   ch:[{label:"Open it",say:"You flip the latches. Click. Click.",to:"face"},
+       {label:"Poke it with a stick",say:"You poke it. It giggles. You open it.",to:"face"}]},
+  face:{where:"Inside the suitcase",text:"Inside, sitting on a pile of tiny socks, is a face. Just a face. Round, smiling, wearing tiny glasses. \"Oh, THERE you are!\" it says. \"I'm the conductor's face. I fell off on the night train and got packed by mistake. Can you take me home?\"",
+   scene:()=>homeScene(suitcase(250,190,0,1)+faceMoon(250,140)+bubble(190,84,"hello!!",64),{mood:"scared"}),
+   ch:[{label:"Take it back to the station",say:"You tuck the face under one leg. \"Careful,\" it says. \"I'm ticklish.\"",to:"route"},
+       {label:"Ask it questions first",say:"\"Are you scary?\" \"Only on Tuesdays.\" \"Is it Tuesday?\" \"It's always night here. Who knows!\" You decide to take it back anyway.",to:"route"}]},
+  route:{where:"Which way?",text:"The station is all the way across the Snake Fields. The face says the fastest way is the old track. \"But the snakes like to nap on it,\" it adds. \"And the zombies. And there's a porta potty on it. Nobody knows why.\"",
+   scene:()=>stage(`<path d="M0 192 H360 M0 197 H360" stroke="#7a6a5a" stroke-width="2.5"/>`+snakeIdle()+sp(80,168,{mood:"determined"})+faceMoon(120,112)+bubble(136,62,"choo choo!",80),"Old train tracks through the Snake Fields"),
+   ch:[{label:"Take the old track",ic:"train",game:{how:"Tap to switch tracks. Dodge everything!",run:cb=>trackGame(8,cb)},
+        after:r=>{S.flies+=r.flies;return {say:r.hits<=1?`You fly down the old track. The face screams "WHEEEE" the whole way.${r.flies?` You grab ${r.flies} flies too.`:""}`:`You bonk into ${r.hits} things. The face says "ow" every time, even though it wasn't the one getting hit.`}},to:"back"},
+       {label:"Walk the long way",say:"You walk the long way around. It takes all night. The face hums train songs the whole time. Very off-key.",go:()=>hungry(-10),to:"back"}]},
+  back:{where:"Spider Verse Station",text:"The conductor is standing on the platform, looking everywhere without any eyes. You hold up the face. It flies out of your legs and lands on the conductor's head. POP. The conductor blinks for the first time. \"THANK you. I could not see a THING.\"",
+   scene:()=>stage(trainCar()+conductor(290,168,1)+sp(140,172,{mood:"happy",wave:true})+bubble(220,52,"THANK YOU!",88),"The conductor with its face back"),
+   ch:[{label:"\"You're welcome!\"",say:"The conductor punches your ticket. CLICK. Then it presses something cold into your leg: a little silver whistle. \"Blow this,\" it says, \"when you need a ride.\"",go:()=>{S.items.whistle=1}},
+       {label:"Ask for a ride home",say:"\"Can I ride home? Like, HOME home?\" The conductor smiles with its brand-new face. \"Not yet. 363 more nights.\" It punches your ticket, CLICK, and hands you a little silver whistle. \"But this will help.\"",go:()=>{S.items.whistle=1}}]}},
+  end:say=>({where:"Night 2 is over",text:say+" You fall asleep holding the whistle. You dream about trains.",scene:homeScene("",{mood:"sleep"}),log:"Found the conductor's face in a suitcase. Got a silver whistle."})},
+ 3:{title:"The Grand Loop",tip:"A whistle in the distance.",start:"whistle",beats:{
+  whistle:{where:"Your rock",text:"You hold up the silver whistle and blow. TWEEEEET. The ground shakes. Rails grow up out of the dirt, right up to your rock. The Night Train pulls up, steam hissing. The conductor leans out, face and all. \"All aboard for the Grand Loop! One night only!\"",
+   scene:()=>stage(trainCar()+conductor(195,172,1,{scale:.7})+sp(290,168,{mood:"happy"})+bubble(40,52,"ALL ABOARD!",96),"The Night Train arriving at your rock"),
+   ch:[{label:"All aboard!",ic:"train",say:"You climb aboard. The seats are red velvet. They smell like old popcorn and porta potty, but mostly popcorn.",to:"loop"}]},
+  loop:{where:"The Grand Loop",text:"The train rolls through the whole Spider Verse. Past Zombie Village, where everyone waves. Past the fridge, humming in the dark. Past a hundred porta potties in a row. There's a dining car. And there's a window seat.",
+   scene:()=>stage(village()+trainCar()+`<g class="speed"><path d="M240 120 h30 M250 140 h40 M236 160 h26" stroke="#f4e9e4" stroke-width="2" opacity=".6"/></g>`+sp(96,134,{scale:.32,mood:"happy"}),"The Night Train rolling past Zombie Village"),
+   ch:[{label:"Eat in the dining car",ic:"fly",game:{how:"The flies got loose in the dining car! Tap them!",run:cb=>flyGame(`<rect x="0" y="150" width="360" height="40" fill="#5b3d24"/><rect x="40" y="130" width="80" height="8" fill="#f4e9e4"/><rect x="230" y="130" width="80" height="8" fill="#f4e9e4"/>`,10,9,cb)},
+        after:n=>{S.flies+=n;hungry(n*6);return {say:n?`You catch ${n} flies and eat them with a tiny fork. Fancy.`:"The flies win this round. The waiter, a zombie in a bow tie, brings you a gray muffin instead."}},to:"drive"},
+       {label:"Take the window seat",say:"You press your face to the glass. Out there: a snake bowing, a zombie waving with both arms, a green cloud smiling. Somewhere down there is your rock. It looks so small from up here. You don't feel small at all.",go:()=>scare(-6),to:"drive"}]},
+  drive:{where:"The driver's seat",text:"The conductor sits down next to you and takes off its hat. \"My shift is over,\" it says. \"Somebody has to drive.\" It looks at you. Ahead, the tracks split and split again. Snakes. Zombies. A porta potty. Right on the rails.",
+   scene:()=>stage(`<path d="M180 110 L20 220 M180 110 L340 220 M180 110 L120 220 M180 110 L240 220" stroke="#7a6a5a" stroke-width="3"/>`+potty(150,0)+zombie(250,"shamble")+sp(70,168,{mood:"determined"})+conductor(310,168,1,{scale:.8}),"Tracks splitting ahead"),
+   ch:[{label:"Drive the Night Train",ic:"train",game:{how:"Tap to switch tracks. Get everyone home safe!",run:cb=>trackGame(10,cb)},after:r=>{S.flies+=r.flies;S.dents=r.hits;return {}},to:"hired"}]},
+  hired:{where:"End of the line",text:()=>`The Night Train rolls back into the station ${S.dents<=1?"without a single scratch":`with only ${S.dents} dents`}. The conductor stands up and claps. With four hands. "You're hired. Assistant Conductor." It puts a tiny conductor's hat on your head and stamps your ticket in gold.`,
+   scene:()=>stage(trainCar()+confetti()+conductor(290,168,1)+sp(140,172,{mood:"happy",cap:1})+bubble(180,52,"HIRED!",64),"You in a conductor's hat"),
+   ch:[{label:"Salute the conductor",say:"You salute with one leg. The conductor salutes with three.",go:()=>hire()},
+       {label:"Blow the whistle",ic:"train",say:"TWEEEEET! Every spider-person in the station cheers. The train whistles back.",go:()=>hire()}]}},
+  end:say=>({where:"Night 3 is over",text:say+" From now on, whenever you blow the whistle, the Night Train comes. You're never really lost here. Not anymore.",scene:homeScene("",{mood:"sleep"}),log:"Drove the Night Train. Became Assistant Conductor."})}
+}};
+function hire(){S.items.cap=1;if(!S.pals.includes("The Conductor"))S.pals.push("The Conductor")}
+
+/* ---------- story engine ---------- */
+let SCRIPT=null;
+const chapterFor=d=>S.method&&STORY[S.method]&&STORY[S.method][d]&&!S.done["ch"+d]?STORY[S.method][d]:null;
+function runChapter(d){SCRIPT=Object.assign({day:d},STORY[S.method][d]);showB(SCRIPT.start)}
+function showB(id,say){
+  stopMini();const b=SCRIPT.beats[id];if(b.enter)b.enter();
+  render();$("sDay").textContent=`Night ${S.day} · ${SCRIPT.title}`;
+  if(b.scary)sting();
+  $("stage").innerHTML=b.scene();$("sWhere").textContent=b.where;
+  $("sText").textContent=(say?say+" ":"")+(typeof b.text==="function"?b.text():b.text);
+  const box=$("choices");box.className="choices";box.innerHTML="";
+  b.ch.filter(c=>!c.cond||c.cond()).forEach((c,k)=>{const btn=document.createElement("button");btn.id="ch-"+k;
+    btn.innerHTML=(c.ic?`<span class="ci"><svg viewBox="0 0 28 28" aria-hidden="true">${IC[c.ic]}</svg></span>`:icon(c.label))+`<span>${c.label}${c.game?` <span class="tag game" style="margin:0 0 0 4px">play</span>`:""}</span>`;
+    btn.onclick=()=>pickB(c);box.appendChild(btn)});
+}
+function pickB(c){
+  if(c.game){$("choices").innerHTML="";$("sText").textContent=c.game.how;c.game.run(res=>{const r=c.after(res)||{};goB(r.to||c.to,r.say)});return}
+  if(c.go)c.go();goB(c.to,typeof c.say==="function"?c.say():c.say);
+}
+function goB(to,say){if(to)showB(to,say);else endChapter(say||"")}
+function endChapter(say){
+  const c=SCRIPT;S.done["ch"+c.day]=1;if(c.day===1)S.arrived=1;
+  const r=c.end(say);
+  $("stage").innerHTML=r.scene;$("sWhere").textContent=r.where;$("sText").textContent=r.text.trim();
+  S.log.push({d:S.day,t:r.log});
+  render();$("sDay").textContent=`Night ${S.day} · ${c.title}`;save();showSleep();
+}
+
+/* ---------- events ---------- */
+// kind: pin (urgent), cal (special night), arc (story), pool (everyday). scary:true plays a sting and shows a Scary tag.
+const out=(text,scene,log)=>({text,scene,log});
+const EV=[
+ {id:"starving",kind:"pin",title:"Too hungry!",where:"Your stomach",cond:()=>S.hunger<=15,
+  intro:()=>"Your stomach is growling so loud a zombie looked over. You need flies. Now.",
+  scene:()=>homeScene(bubble(118,82,"so... hungry...",116),{mood:"scared"}),
+  ch:[{label:"Race to the fridge",game:1,go:()=>({how:"Tap the flies before they get away!",mini:cb=>flyGame(fridge(1),10,10,n=>{S.flies+=n;hungry(n*7+12);
+    cb(out(n?`You catch ${n} flies and eat most of them on the spot. Your legs stop shaking.`:"You catch zero flies. A spider-person feels bad for you and shares a fly sandwich. Saved.",
+      stage(fridge(1)+sp(110,168,{mood:"happy",grab:true})+bubble(40,70,"saved!"),"You eating"),`caught ${n} flies`))})})}]},
+ {id:"terrified",kind:"pin",scary:1,title:"Too scared to sleep",where:"Your home",cond:()=>S.fear>=85&&S.day>1,
+  intro:()=>"Every sound is a snake. Every shadow has eyes. Something just tapped on your web. Twice.",
+  scene:()=>homeScene(eyePair(250,120,"#ffd23f",1.2,"lurk")+eyePair(320,150,"#ff3a2a",1,"lurk",1.2)+bubble(110,82,"who's there?!",104),{mood:"scared"}),
+  ch:[{label:"Light your lantern",cond:()=>S.items.lantern,go:()=>{scare(-35);return out("The lantern glows. Every pair of eyes blinks and backs away. Turns out they don't like light. Good to know.",homeScene(bubble(110,82,"ha! get lost!",100),{mood:"determined"}),"chased the eyes away with a lantern")}},
+      {label:"Sleep next to your housemates",cond:()=>mates().length>0,go:()=>{scare(-30);return out(`You squeeze in next to ${mates()[0]}. It's hard to be scared when someone's snoring next to you.`,homeScene("",{mood:"sleep"}),"slept next to a housemate")}},
+      {label:"Do the Starfish Trick",ic:"star",cond:()=>S.items.starfish,go:()=>{scare(-30);return out("You lie flat like a starfish and don't move a single leg. Whatever is out there can't see you. One by one, the eyes get bored and blink away.",homeScene("",{mood:"sleep"}),"did the Starfish Trick")}},
+      {label:"Let your raven keep watch",ic:"raven",cond:()=>S.ravenName,go:()=>{scare(-30);return out(`${S.ravenName} sits on your head with both eyes open all night. Every time something moves in the bushes, ${S.ravenName} caws at it. Nothing comes close.`,homeScene("",{mood:"sleep"}),`${S.ravenName} kept watch`)}},
+      {label:"Let your moth hum",ic:"moon",cond:()=>S.mothName,go:()=>{scare(-30);return out(`${S.mothName} lands on your nose and hums the Hum. Low and slow. You're asleep before the third hum.`,homeScene("",{mood:"sleep"}),`${S.mothName} hummed me to sleep`)}},
+      {label:"Blow the silver whistle",ic:"train",cond:()=>S.items.whistle,go:()=>{scare(-30);return out("TWEEEET. The Night Train pulls up. You sleep in a velvet seat, rocking gently, all the way around the Spider Verse and back. The conductor tucks you in.",homeScene("",{mood:"sleep",cap:S.items.cap}),"slept on the Night Train")}},
+      {label:"Hum the cold fly song",go:()=>{scare(-20);return out("You hum the only song you know here, the one about cold flies. Your voice shakes. By the third verse, it doesn't.",homeScene(bubble(110,82,"♪ cold flies... ♪",110),{mood:"sleep"}),"hummed through a scary night")}}]},
+
+ /* ----- special nights ----- */
+ {id:"fest",kind:"cal",at:31,title:"The Web Festival",where:"Spider Town square",
+  intro:()=>"Once a year, all of Spider Town spins webs in the square. There's a contest. The prize is a gold ribbon.",
+  scene:()=>stage(town()+web(60,60,30)+web(300,56,26)+confetti()+sp(150,168,{mood:"happy"})+pal(230,168,{flip:true})+pal2(300,168,{flip:true,scale:.9})+bubble(190,96,"go go go!",84),"Web Festival"),
+  ch:[{label:"Enter the web contest",game:1,go:()=>({how:"Connect the pegs in order, fast!",mini:cb=>webGame(8,14,(k,n)=>{const win=k===n;if(win)S.items.ribbon=1;else S.flies+=3;scare(-8);
+    cb(out(win?"Your web is perfect. The judges, three very old spider-people, nod at the same time. You win the gold ribbon. You wear it on your spider body forever.":`You connect ${k} of ${n} pegs. The judges give you a participation fly. Three of them, actually.`,
+      stage(town()+web(180,104,60)+confetti()+sp(180,168,{mood:"happy"})+bubble(110,40,win?"CHAMPION!":"next year!"),"Web contest result"),win?"won the gold ribbon":"entered the web contest"))})})},
+      {label:"Watch and eat festival snacks",go:()=>{S.flies+=6;hungry(15);scare(-8);return out("You watch from the crowd and eat chocolate-covered flies. A kid next to you spins a web shaped like a porta potty. Art.",stage(town()+web(180,90,40)+confetti()+sp(120,168,{mood:"happy"})+pal2(220,168,{flip:true,scale:.8})+bubble(60,90,"crunchy"),"Watching the festival"),"watched the Web Festival")}}]},
+ {id:"parade",kind:"cal",at:100,title:"Porta Potty Parade",where:"Main road",
+  intro:()=>"Night 100 means the Porta Potty Parade. The floats are porta potties. On wheels. One of them is knocking from the inside. Nobody else seems to notice.",
+  scene:()=>stage(potty(60,0)+potty(160,0,1)+potty(260,0)+stink(66,118)+stink(266,118)+confetti()+sp(110,100,{mood:"happy",scale:.7})+pal(320,168,{flip:true,wave:true}),"Porta potty parade"),
+  ch:[{label:"Ride the lead float",go:()=>{smell(20);return out("You ride on top of the lead porta potty and wave with all eight legs. The crowd goes wild. Under your feet, something knocks three times. You don't get off until the end.",stage(potty(150,0)+stink(156,118,6)+confetti()+sp(170,100,{mood:"happy",wave:true})+pal(60,168)+pal2(300,168,{flip:true})+bubble(200,40,"I'm famous!"),"You riding a parade float"),"rode the Porta Potty Parade")}},
+      {label:"Throw cold flies to the crowd",cond:()=>S.flies>=5,go:()=>{S.flies-=5;const a=addPal(),b=addPal();scare(-6);return out(`You toss cold flies into the crowd. Two spider-people catch them and become your friends on the spot: ${a} and ${b}.`,stage(potty(250,0)+confetti()+fly(180,60)+fly(210,40,.2)+sp(110,168,{mood:"happy",wave:true})+pal(220,168,{flip:true})+pal2(300,168,{flip:true})+bubble(170,96,"thanks!!",76),"Throwing flies"),`made friends with ${a} and ${b}`)}}]},
+ {id:"pink",kind:"cal",at:182,title:"The Pink Moon",where:"Red Sky Hill",pink:1,
+  intro:()=>"Halfway through your year, the moon turns pink for one single night. Nobody knows why. Even the eyes in the bushes come out to look.",
+  scene:()=>stage(bigMoon()+hill()+sp(162,124,{scale:.85})+(S.pals.length?pal(206,124,{flip:true,scale:.85}):""),"The pink moon",false),
+  ch:[{label:"Bring everyone to the hill",go:()=>{scare(-20);const crew=[S.zed?"Zed":null,S.egg>=3?"the snake babies":null,S.pip?"Pip":null,S.pals.length?S.pals.slice(0,2).join(" and "):null].filter(Boolean);
+    return out(crew.length?`You bring ${crew.join(", ")} up the hill. Nobody says anything for a long time. It's the nicest night of the year.`:"You go up alone. That's okay. The pink moon feels like it showed up just for you.",stage(bigMoon()+hill()+sp(150,124,{scale:.8})+(S.zed?zedFig(230):"")+(S.egg>=3?babySnake(100):"")+(S.pip?pipSp(195,140):""),"Everyone under the pink moon",false),"watched the Pink Moon")}},
+   {label:"Make a half-year wish",go:()=>{smell(-30);return out("You wish for the world to smell a little less like poop. The next morning it does. Only a little. But you'll take it.",stage(bigMoon("wobble")+hill()+sp(162,124,{scale:.85,mood:"sleep"})+bubble(120,46,"please...",76),"Making a wish",false),"made a wish on the Pink Moon")}}]},
+ {id:"migration",kind:"cal",at:250,scary:1,title:"The Great Snake Migration",where:"Everywhere",
+  intro:()=>"The ground starts hissing. Thousands of 3-headed snakes are crossing the whole world tonight. That's tens of thousands of heads. You need to get home.",
+  scene:()=>stage(snakeIdle()+snakeNeck(150,120,120,96,"sway",.2).replace(/M250 182/,"M130 182")+sp(60,168,{mood:"scared"})+bubble(20,92,"SO many heads"),"Snake migration"),
+  ch:[{label:"Bonk your way home",game:1,go:()=>({how:"Bonk the glowing head before it bites!",mini:cb=>snakeGame(10,b=>{S.heads+=b*3;scare(b>=6?-15:10);cb(out(`You bonk ${b} heads on the way home. Snakes will tell stories about you.`,stage(snakeNeck(220,150,200,170,"",0)+snakeNeck(250,150,250,176,"",0)+snakeNeck(280,150,300,170,"",0)+sp(100,168,{mood:"happy"})+bubble(40,90,"made it!"),"Made it home"),`bonked ${b} heads in the migration`))})})},
+   {label:"Wait it out in your web",go:()=>{scare(S.egg>=3?-10:10);return out(S.egg>=3?`Your snake babies, ${S.snakeNames}, watch the migration with all six eyes. They wave at the big snakes. Then they curl up next to you. They're staying.`:"You hang upside down in your web and watch the snakes go by all night. Hissing. Sliding. Hissing. You don't blink once.",homeScene(bubble(120,80,"so... many...",104),{mood:"scared"}),"watched the Snake Migration")}}]},
+ {id:"bakeoff",kind:"cal",at:300,title:"Zombie Bake-Off",where:"Zombie Village",
+  intro:()=>"The Zombie Village holds a bake-off. Every entry is gray. "+(S.zed>=3?"Zed is one of the judges.":"The judges are three zombies who say 'uhhh' at everything."),
+  scene:()=>stage(village()+`<rect x="140" y="160" width="80" height="8" fill="#5b3d24"/><circle cx="160" cy="152" r="9" fill="#9a9a9a"/><circle cx="200" cy="152" r="9" fill="#8a8a8a"/>`+zombie(250,"shamble")+sp(100,168,{mood:"happy"})+(S.zed?zedFig(300):""),"Zombie bake-off"),
+  ch:[{label:"Bake a fly pie",cond:()=>S.flies>=4,go:()=>{S.flies-=4;const win=S.zed>=3;if(win)addPal();return out(win?`Zed tastes your fly pie and says "${S.zedWord}!" It wins first place. The other zombies want your recipe.`:"Your fly pie comes in second place, behind a gray cake that is just a rock. You're still proud.",stage(village()+`<ellipse cx="180" cy="160" rx="24" ry="8" fill="#c08a4a"/>`+fly(172,150)+fly(188,148,.2)+sp(110,168,{mood:"happy"})+(S.zed?zedFig(260):zombie(260,""))+bubble(200,92,win?S.zedWord+"!":"uhhh",70),"Your fly pie"),win?"won the Zombie Bake-Off":"got 2nd at the Bake-Off")}},
+   {label:"Taste-test gray muffins",go:()=>{hungry(30);return out("You eat eleven gray muffins. They taste like... gray. You're full for days.",stage(village()+zombie(240,"shamble")+sp(140,168,{mood:"gross"})+bubble(90,92,"so gray"),"Eating gray muffins"),"ate gray muffins")}}]},
+ {id:"goodbye",kind:"cal",at:364,title:"Your Goodbye Party",where:"Your home",
+  intro:()=>"Tomorrow is night 365. Everybody you know shows up at your web with snacks. Even some snakes. Even the eyes in the bushes seem a little sad.",
+  scene:()=>homeScene(confetti()+pal(260,168,{flip:true,party:true,scale:.8}),{party:true,mood:"happy"}),
+  ch:[{label:"Give a goodbye speech",go:()=>out(`You stand on your ${HOME_NAMES[S.home]} and thank everyone. ${S.pals.length?S.pals.length+" spider pals":"The zombies"} cheer. ${S.zed?`Zed says "${S.zedWord||"uhhh"}" very quietly.`:""} You'll miss the smell. Kind of.`,homeScene(confetti()+bubble(110,40,"thank you!!",96),{party:true,wave:true}),"said goodbye")},
+   {label:"One last midnight snack",go:()=>{hungry(40);return out("You eat one last fridge fly with everyone. It's the coldest, crunchiest fly of the year. Perfect ending.",homeScene(confetti()+fly(200,120),{party:true,grab:true}),"had one last snack")}}]},
+
+ /* ----- scary stories ----- */
+ {id:"knock0",kind:"arc",scary:1,title:"Something is knocking",where:"Porta Potty Row",cond:()=>S.knock===0&&S.day>=3,w:()=>3+(S.weather==="stink"?2:0),
+  intro:()=>"One porta potty is knocking. From the inside. Knock. Knock. Knock. Nobody went in. Mo told you never to knock back.",
+  scene:()=>stage(potty(190,0)+potty(240,0,1)+potty(290,0)+sp(100,168,{mood:"scared"})+bubble(50,92,"nobody's in there...",140),"A porta potty knocking from inside"),
+  ch:[{label:"Knock back",go:()=>{S.knock=1;S.knockDay=S.day;scare(15);return out("You knock back. The knocking stops. The door creaks open by itself. Nobody's inside. Just a note taped to the wall: NOT YET. You take the note home. You're not sure why.",stage(potty(190,0)+potty(240,1)+potty(290,0)+`<rect x="249" y="146" width="22" height="14" fill="#f4e9e4"/><text class="bt" x="260" y="156" text-anchor="middle" font-size="7" fill="#1a0507">NOT YET</text>`+sp(110,168,{mood:"scream"}),"An empty porta potty with a note"),"knocked back. found a note: NOT YET")}},
+   {label:"Back away slowly",go:()=>{scare(6);return out("You back away very slowly. The knocking follows you. Not the porta potty. Just the knocking. It stops at the edge of your web.",stage(potty(240,0,1)+sp(90,168,{mood:"scared",walk:true}),"Backing away"),"backed away from the knocking")}}]},
+ {id:"knock1",kind:"arc",scary:1,title:"The note changed",where:"Your home",cond:()=>S.knock===1&&S.day>=S.knockDay+6,w:()=>6,
+  intro:()=>"You wake up and look at the note from the porta potty. It doesn't say NOT YET anymore. It says NOW. Far away, three knocks.",
+  scene:()=>homeScene(`<rect x="196" y="56" width="50" height="30" fill="#f4e9e4" transform="rotate(-6 221 71)"/><text class="bt" x="221" y="78" text-anchor="middle" font-size="16" fill="#e2483d" transform="rotate(-6 221 71)">NOW</text>`,{mood:"scared"}),
+  ch:[{label:"Go open the door",go:()=>{S.knock=2;const a=addPal(),b=addPal();scare(-30);return out(`You walk to Porta Potty Row with every leg shaking. You open the door. "SURPRISE!" It's a party. ${S.pals[0]}, ${a}, ${b} and half of Spider Town are crammed inside. It's been knocking for weeks because they couldn't agree on a date.`,stage(potty(150,1)+confetti()+sp(100,168,{mood:"scream"})+pal(180,168,{flip:true,party:true})+pal2(240,168,{flip:true,party:true})+pal(300,168,{flip:true,party:true,scale:.8})+bubble(170,70,"SURPRISE!!",90),"A surprise party in a porta potty"),"opened the door. it was a surprise party")}},
+   {label:"Nope. Hide in your web",go:()=>{S.knock=3;scare(10);return out("You hide in your web all night. In the morning, the note says LATER. You decide not to read it again.",homeScene(bubble(110,82,"nope nope nope",116),{mood:"scared"}),"hid from the note")}}]},
+ {id:"drawer",kind:"arc",scary:1,title:"The bottom drawer",where:"The Fridge",cond:()=>!S.items.crown&&S.day>=5,w:()=>2.2,
+  intro:()=>"The fridge's bottom drawer is glowing purple. Mo said never to open it. Inside, something tiny is breathing. It knows you're there.",
+  scene:()=>stage(fridge(0,1)+eyePair(195,174,"#ffd23f",.8,"blink")+sp(90,168,{mood:"scared",reach:true})+bubble(40,92,"don't do it...",112),"A glowing fridge drawer"),
+  ch:[{label:"Open it",go:()=>{S.items.crown=1;S.flies+=15;scare(-10);return out("You pull it open. Inside sits one fly the size of your head, wearing a crown. \"FINALLY,\" it says. It's the Fly King. He makes you Royal Fly Taster, gives you a tiny crown, and 15 of his least favorite subjects.",stage(fridge(1)+`<g transform="translate(195 150) scale(3)">${fly(0,0)}</g><path d="M186 128 l3 -8 l3 5 l3 -7 l3 7 l3 -5 l3 8z" fill="#ffd23f"/>`+sp(100,168,{mood:"happy",reach:true})+bubble(206,92,"FINALLY.",70),"The Fly King"),"opened the drawer. met the Fly King")}},
+   {label:"Keep it shut",go:()=>{scare(12);return out("You hold the drawer shut with four legs. The breathing stops. Then, very quietly, the drawer says your name.",stage(fridge(0,1)+sp(120,168,{mood:"scared",grab:true})+`<text class="bt breathe" x="195" y="206" text-anchor="middle" font-size="11" fill="#c9a8ff">...psst...</text>`,"Holding the drawer shut"),"kept the drawer shut. it said my name")}}]},
+ {id:"footsteps",kind:"pool",scary:1,title:"Footsteps behind you",where:"The road home",cond:()=>S.day>=3,w:()=>2+(S.weather==="fog"?3:0),
+  intro:()=>"Walking home. Behind you: step. step. step. You stop. The steps stop. You can feel someone breathing on the back of your head.",
+  scene:()=>stage(potty(300,0)+sp(130,168,{mood:"scared"})+`<g opacity=".85">${shadowSp(220,168)}</g>`+bubble(70,92,"...hello?",72),"Something behind you"),
+  ch:[{label:"Run!",game:1,go:()=>({how:"Tap the stage as fast as you can!",mini:cb=>chaseGame(26,6,w=>{scare(w?-6:12);
+    const who=S.pip?"Pip":S.zed?"Zed":"a tiny zombie kid";
+    cb(out(w?"You run so fast your legs blur. You make it home and slam your web shut. Outside, the footsteps walk past. Slowly. Then they stop.":`It catches you. You squeeze your eyes shut... and get hugged. It's ${who}. They just wanted to walk home with you.`,
+      w?homeScene(bubble(110,82,"made it!!",80),{mood:"puff"}):stage(sp(130,168,{mood:"scared"})+(S.pip?pipSp(170,181):S.zed?zedFig(170):zombie(170,"",0,{smile:1}))+bubble(70,92,"oh. hi.",60),"A hug"),w?"outran the footsteps":"got caught... by a hug"))})})},
+   {label:"Turn around slowly",go:()=>{const r=Math.random();if(r<.5){scare(15);return out("You turn around. Nothing. Empty road. But in the dirt, right behind where you were standing, there are footprints. Lots of them. Going in circles.",stage(`<g fill="#3a0a0e">${Array.from({length:10},(_,i)=>`<ellipse cx="${200+Math.cos(i)*40}" cy="${182+Math.sin(i)*5}" rx="4" ry="2"/>`).join("")}</g>`+sp(130,168,{mood:"scream"}),"Footprints in circles"),"turned around. nobody there")}
+    const n=addPal();scare(-5);return out(`You turn around. It's a spider-person named ${n}, holding a fly sandwich. "Sorry! I'm bad at saying hi." You walk home together.`,stage(sp(130,168,{mood:"happy"})+pal(220,168,{flip:true})+bubble(170,92,"sorry!!",62),"A new friend"),`turned around. met ${n}`)}}]},
+ {id:"blackout",kind:"pool",scary:1,title:"The moon went out",where:"Everywhere",cond:()=>S.weather==="blackout",w:()=>10,
+  intro:()=>"Click. The moon goes out like a light. Everything is black. Then the eyes open. Dozens of them. Mo said: don't count the eyes.",
+  scene:()=>stage(`<rect width="360" height="220" fill="#000" opacity=".7"/>`+[[60,60],[110,120],[250,70],[300,130],[200,40],[40,150],[330,60]].map(([x,y],i)=>eyePair(x,y,i%2?"#ffd23f":"#ff3a2a",1,"lurk",i*.6)).join("")+sp(180,168,{mood:"scared",scale:.85}),"Eyes in the dark",false),
+  ch:[{label:"Shoo the eyes away",game:1,go:()=>({how:"Tap the eyes before they blink closer!",mini:cb=>eyeGame(10,g=>{scare(g>=7?-15:12);
+    cb(out(g>=7?`You shoo away ${g} pairs of eyes. The rest decide you're not worth it. Click. The moon comes back on.`:`You only shoo ${g}. The rest stay. All night. Watching. They don't do anything. That's the worst part.`,stage(sp(180,168,{mood:g>=7?"determined":"scared"})+(g>=7?"":eyePair(240,150,"#ffd23f",1,"blink")+eyePair(120,140,"#ff3a2a",1,"blink")),"After the blackout"),`shooed ${g} pairs of eyes`))})})},
+   {label:"Count the eyes",go:()=>{scare(18);const who=S.pip?"Pip":S.pals.length?S.pals[S.pals.length-1]:"a very small zombie";return out(`You count them. 46. 47. 48. ...49. That last pair is right next to you. "Boo," says ${who}. You will never forgive them.`,stage(`<rect width="360" height="220" fill="#000" opacity=".7"/>`+sp(170,168,{mood:"scream",scale:.85})+eyePair(215,150,"#ffd23f",1.2,"blink")+bubble(220,110,"boo.",44),"Boo"),"counted the eyes. got booed")}},
+   {label:"Do the Starfish Trick",ic:"star",cond:()=>S.items.starfish,go:()=>{scare(-20);return out("You lie flat like a starfish in the pitch dark. The eyes slide right over you. They search all night. They never find you. Click. The moon comes back on.",homeScene("",{mood:"sleep"}),"hid from the eyes with the Starfish Trick")}},
+   {label:"Light your lantern",cond:()=>S.items.lantern,go:()=>{scare(-20);return out("You hold up your lantern. Every pair of eyes blinks and backs into the bushes. You sit in your little circle of light until the moon clicks back on.",homeScene("",{mood:"determined"}),"lit the lantern in the dark")}}]},
+ {id:"whisper",kind:"pool",scary:1,title:"Your web is whispering",where:"Your home",cond:()=>S.home>=1,w:()=>1.6,
+  intro:()=>"Every strand of your web is whispering. Tiny, soft words you almost understand. They get louder when you get closer.",
+  scene:()=>homeScene(`<text class="bt breathe" x="63" y="64" text-anchor="middle" font-size="11" fill="#c9a8ff">sss... sss...</text>`,{mood:"scared"}),
+  ch:[{label:"Listen closely",go:()=>{const fed=S.flies>=3;if(fed)S.flies-=3;scare(fed?-10:8);return out(fed?"It's whispering \"fly... fly... fly...\" Your web is alive, and hungry. You feed it three flies. It purrs. You didn't know webs could purr.":"It's whispering \"fly... fly... fly...\" You don't have enough to feed it. It whispers all night.",homeScene(bubble(110,82,fed?"good web.":"sorry web...",86),{mood:fed?"happy":"scared"}),fed?"fed my whispering web":"listened to the whispering web")}},
+   {label:"Cut the loudest strand",go:()=>{scare(10);return out("Snip. The whispering stops. Then it starts again from the other side of the room. A little louder.",homeScene(bubble(110,82,"...hello?",72),{mood:"scared"}),"cut a whispering strand")}}]},
+ {id:"elder",kind:"arc",scary:1,title:"The shadow with too many legs",where:"Red Sky Hill",cond:()=>!S.done.elder&&S.day>=20,w:()=>2,
+  intro:()=>"A shadow crawls across the moon. It's a spider. A huge one. It has way, way more than eight legs. And it's looking at you.",
+  scene:()=>stage(bigMoon()+hill()+elder(180,70,.8)+sp(90,168,{mood:"scared"}),"A giant shadow spider",false),
+  ch:[{label:"Follow it",go:()=>{S.done.elder=1;scare(-15);const gift=!S.items.lantern;if(gift)S.items.lantern=1;return out(`It's the Spider Elder. 100 legs. 400 years old. Very nice. She tells you the legend: "Before the red sky, the sky was blue." Nobody believes her. ${gift?"She gives you a lantern. \"For the eyes,\" she says.":"She says your lantern is very good."}`,stage(bigMoon()+hill()+elder(220,110,.7)+sp(110,168,{mood:"happy"})+lantern(150,140)+bubble(150,44,"the sky was BLUE",128),"The Spider Elder",false),"met the Spider Elder")}},
+   {label:"Hide",go:()=>{scare(10);return out("You flatten yourself into the dirt. The shadow stops right above your web. It stays there for a long time. Then it moves on, one leg at a time. There are a lot of legs.",homeScene(`<g opacity=".8">${elder(200,40,.6)}</g>`,{mood:"scared"}),"hid from a giant shadow")}}]},
+
+ /* ----- story: Zed ----- */
+ {id:"zed0",kind:"arc",scary:1,title:"Someone is following you",where:"On your way home",cond:()=>S.zed===0&&S.day>=4,w:()=>2+(S.weather==="zmoon"?4:0),
+  intro:()=>"Shuffle. Shuffle. You turn around. A zombie stops and pretends to look at a rock. You keep walking. Shuffle. Shuffle.",
+  scene:()=>stage(zombie(270,"shamble")+`<ellipse cx="300" cy="188" rx="12" ry="5" fill="#3a2424"/>`+sp(130,168,{mood:"scared"})+bubble(80,92,"uh... hi?",76),"A zombie following you"),
+  ch:[{label:"Say hi",go:()=>{S.zed=1;S.zedDay=S.day;scare(-8);return out("He says 'uhhh.' You decide his name is Zed. He follows you home and stands next to your web all night. He seems happy.",homeScene(bubble(240,70,"uhhh",50),{wave:true}),"met Zed the zombie")}},
+   {label:"Run!",go:()=>{scare(5);return out("You run. Eight legs beats two zombie legs. You lose him... for now.",stage(sp(80,168,{walk:true,mood:"puff"})+zombie(280,"shamble")+`<g class="speed"><path d="M120 150 h26 M122 162 h22" stroke="#f4e9e4" stroke-width="2" opacity=".6"/></g>`,"Running from a zombie"),"ran from a zombie")}}]},
+ {id:"zed1",kind:"arc",title:"Zed wants a hat",where:"Spider Town",cond:()=>S.zed===1&&S.day>=S.zedDay+3,w:()=>5,
+  intro:()=>"Zed keeps staring at everyone's hats in Spider Town. He looks at you. He looks at the hats. He looks at you.",
+  scene:()=>stage(town()+zedFig(230)+sp(130,168)+bubble(190,90,"...hat?",62),"Zed looking at hats"),
+  ch:[{label:"Buy him a hat (6 flies)",cond:()=>S.flies>=6,go:()=>{S.flies-=6;S.zed=2;S.zedDay=S.day;return out("You buy Zed a tiny top hat. He doesn't take it off. Not even to sleep. Zombies don't sleep, but still.",stage(town()+zedFig(230)+sp(130,168,{mood:"happy"})+bubble(190,90,"!!!",40),"Zed in a hat"),"bought Zed a hat")}},
+   {label:"Spin him a web hat",go:()=>{S.zed=2;S.zedDay=S.day;return out("You spin Zed a hat out of web. It's lumpy. He loves it more than anything in the world.",stage(town()+zedFig(230)+sp(130,168,{mood:"happy",reach:true})+bubble(190,90,"!!!",40),"Zed in a web hat"),"made Zed a web hat")}}]},
+ {id:"zed2",kind:"arc",title:"Zed's first word",where:"Your home",cond:()=>S.zed===2&&S.day>=S.zedDay+4,w:()=>5,
+  intro:()=>"Zed has been making new sounds in the middle of the night. Not 'uhhh.' Something else. It woke you up. He's trying to say a word.",
+  scene:()=>homeScene(bubble(250,70,"fff...",54)),
+  ch:[{label:"Teach him 'friend'",go:()=>{S.zed=3;S.zedDay=S.day;S.zedWord="FREND";scare(-10);return out("You practice for hours. Then Zed points at you and says 'FREND.' You have to sit down for a minute.",homeScene(bubble(240,70,"FREND",60),{mood:"happy"}),"Zed said 'FREND'")}},
+   {label:"Teach him 'flies'",go:()=>{S.zed=3;S.zedDay=S.day;S.zedWord="FLIIIES";return out("Zed learns 'FLIIIES.' He says it every time he sees the fridge. And every time he sees you. You're not sure what that means.",homeScene(bubble(220,70,"FLIIIES",76),{mood:"happy"}),"Zed said 'FLIIIES'")}}]},
+ {id:"zed3",kind:"arc",title:"Zed for Mayor",where:"Zombie Village",cond:()=>S.zed===3&&S.day>=Math.max(S.zedDay+5,60),w:()=>5,
+  intro:()=>"The Zombie Village needs a new mayor. Zed raises one arm. Actually both arms. Zombie arms only go one way.",
+  scene:()=>stage(village()+zedFig(200)+zombie(260,"shamble")+sp(110,168)+bubble(150,92,S.zedWord+"!",74),"Zed running for mayor"),
+  ch:[{label:"Make campaign posters",go:()=>{S.zed=4;S.items.mayor=1;return out(`You make 40 posters that say "ZED: HE KNOWS ONE WORD." He wins by a landslide. Mayor Zed's first rule: no chasing spiders.`,stage(village()+`<rect x="150" y="60" width="60" height="40" fill="#f4e9e4"/><text class="bt" x="180" y="84" text-anchor="middle" font-size="11" fill="#1a0507">VOTE ZED</text>`+confetti()+zedFig(200)+sp(110,168,{mood:"happy",wave:true}),"Mayor Zed"),"helped Zed become mayor")}},
+   {label:"Give a speech for him",go:()=>{S.zed=4;S.items.mayor=1;return out(`You give a speech about how Zed is a great listener. Every zombie claps. Slowly. Zed wins. He says "${S.zedWord}" as his acceptance speech.`,stage(village()+confetti()+zedFig(220)+sp(130,168,{mood:"determined",wave:true})+bubble(80,90,"vote Zed!",76),"Your speech"),"gave a speech for Zed")}}]},
+
+ /* ----- story: the egg ----- */
+ {id:"egg0",kind:"arc",title:"Something in the grass",where:"Snake Fields",cond:()=>S.egg===0&&S.day>=8,w:()=>2+(S.weather==="fog"?3:0),
+  intro:()=>"Something round and speckled is sitting alone in the grass. It's an egg. A big one. Nobody seems to be watching it. Probably.",
+  scene:()=>stage(egg(220,190,false)+sp(130,168,{mood:"scared",reach:true})+bubble(80,92,"is that...?",90),"Finding an egg"),
+  ch:[{label:"Take it home",go:()=>{S.egg=1;S.eggDay=S.day;return out("You carry the egg home in four legs and walk on the other four. It's warm. It might be moving.",homeScene(bubble(110,82,"shhh",48)),"found a mysterious egg")}},
+   {label:"Leave it alone",go:()=>out("You leave it. It feels like the right thing. Then you think about it all night.",stage(egg(220,190,false)+sp(110,168,{walk:true})+bubble(60,92,"bye egg"),"Leaving the egg"),"left an egg alone")}]},
+ {id:"egg1",kind:"arc",scary:1,title:"The egg is wobbling",where:"Your home",cond:()=>S.egg===1&&S.day>=S.eggDay+5,w:()=>5,
+  intro:()=>"In the middle of the night, the egg wobbled. Then it wobbled again. Then you heard a tiny hiss. Three tiny hisses, actually.",
+  scene:()=>homeScene(bubble(70,140,"hsss",50),{mood:"scared"}),
+  ch:[{label:"Wrap it in a web blanket",go:()=>{S.egg=2;S.eggDay=S.day;return out("You spin the softest web blanket ever made. The egg stops wobbling and starts humming.",homeScene(web(118,178,14)),"kept the egg warm")}},
+   {label:"Sing to it",go:()=>{S.egg=2;S.eggDay=S.day;return out("You sing it a song about cold flies. The egg wobbles in rhythm. Three tiny hisses join in.",homeScene(bubble(110,80,"la la la",76),{mood:"howl"}),"sang to the egg")}}]},
+ {id:"egg2",kind:"arc",title:"It's hatching!",where:"Your home",cond:()=>S.egg===2&&S.day>=S.eggDay+3,w:()=>6,
+  intro:()=>"CRACK. Out comes one tiny snake body and three tiny heads. All three look at you and decide you're their mom. They need names.",
+  scene:()=>stage(home()+babySnake(220)+sp(140,168,{mood:"scared"})+bubble(90,92,"aww!!",56),"Baby snake hatching"),
+  ch:[{label:"Name them Larry, Barry & Gary",go:()=>{S.egg=3;S.snakeNames="Larry, Barry & Gary";scare(-10);return out("Larry, Barry and Gary hiss happily. Barry is the troublemaker. Gary only eats the cold flies.",homeScene("",{mood:"happy"}),"hatched Larry, Barry & Gary")}},
+   {label:"Name them Snek, Snok & Snak",go:()=>{S.egg=3;S.snakeNames="Snek, Snok & Snak";scare(-10);return out("Snek, Snok and Snak hiss happily. Snok bit Snak already. They made up.",homeScene("",{mood:"happy"}),"hatched Snek, Snok & Snak")}}]},
+
+ /* ----- story: Gerald ----- */
+ {id:"ger0",kind:"arc",title:"The smell has a face",where:"Porta Potty Row",cond:()=>S.gerald===0&&S.day>=6,w:()=>2+(S.weather==="stink"?5:0),
+  intro:()=>"A green cloud drifts out of a porta potty. It has two eyes. It's smiling at you. Everyone says its name is Gerald.",
+  scene:()=>stage(potties()+gerald(240,90)+sp(100,168,{mood:"gross",reach:true})+bubble(50,92,"GERALD?!",80),"Gerald the smell"),
+  ch:[{label:"Say hi to Gerald",go:()=>{S.gerald=1;S.geraldDay=S.day;smell(10);return out("Gerald is thrilled. Nobody has ever said hi to him before. He follows you home. Your web smells amazing now. Not good. Just amazing.",homeScene("",{mood:"gross"}),"met Gerald")}},
+   {label:"Run away",go:()=>{smell(8);return out("You run. Gerald floats after you very slowly, looking sad. You feel a little bad about it.",stage(potties()+gerald(260,110,.8)+sp(80,168,{mood:"puff",walk:true}),"Running from Gerald"),"ran from Gerald")}}]},
+ {id:"ger1",kind:"arc",title:"Gerald is getting bigger",where:"Spider Town",cond:()=>S.gerald===1&&S.day>=S.geraldDay+5,w:()=>5,
+  intro:()=>"Gerald has grown. A lot. Spider Town is holding its noses and everyone is looking at you.",
+  scene:()=>stage(town()+gerald(200,80,1.8)+sp(120,168,{mood:"gross"})+pal(300,168,{flip:true,mood:"gross"}),"Giant Gerald"),
+  ch:[{label:"Catch him in a jar",go:()=>{S.gerald=2;S.items.jar=1;smell(-25);return out("You catch Gerald in a jar. He doesn't mind. He likes looking out the glass. He sits on your shelf now, smiling.",homeScene("",{mood:"happy"}),"caught Gerald in a jar")}},
+   {label:"Take him to the hill to air out",go:()=>{S.gerald=3;smell(-15);return out("You take Gerald up the hill. The wind blows him smaller and smaller until he's a polite little puff. He still lives with you.",stage(bigMoon()+hill()+sp(150,124,{scale:.85})+gerald(210,90,.5),"Gerald airing out",false),"helped Gerald shrink")}}]},
+
+ /* ----- story: Pip ----- */
+ {id:"pip0",kind:"arc",scary:1,title:"Something is in the fridge",where:"The Fridge",cond:()=>!S.pip&&S.day>=10&&(S.visits.fridge||0)>=1,w:()=>3,
+  intro:()=>"The fridge door is open a crack. Flies are missing. There are tiny footprints. Eight tiny footprints. And from inside: crunch. crunch. crunch.",
+  scene:()=>stage(fridge(0)+eyePair(195,120,"#6bc4ff",.8,"blink")+`<g fill="#6bc4ff">${[0,1,2,3].map(i=>`<circle cx="${270+i*14}" cy="${186-(i%2)*3}" r="1.6"/><circle cx="${274+i*14}" cy="${186-(i%2)*3}" r="1.6"/>`).join("")}</g>`+sp(90,168,{mood:"scared"})+bubble(40,92,"w-who's there?",110),"Fridge mystery"),
+  ch:[{label:"Stake out the fridge",go:()=>{S.pip=1;scare(-8);return out("You hide all night. At 3am a tiny spiderling climbs out holding one fly. They say their name is Pip and they're very sorry and very hungry. Pip lives with you now.",stage(fridge(1)+pipSp(195,135)+sp(90,168,{mood:"happy"})+bubble(150,90,"sorry!!",62),"Meeting Pip"),"met Pip the fridge thief")}},
+   {label:"Set a web trap",go:()=>{S.pip=1;scare(-8);return out("Your web trap catches a tiny spiderling named Pip, upside down, still holding a fly. You let Pip go. Pip doesn't leave. Pip lives with you now.",stage(fridge(1)+web(195,120,30)+pipSp(195,128,{flip:true})+sp(90,168,{mood:"happy"})+bubble(150,70,"hi...",44),"Catching Pip"),"caught Pip in a web")}}]},
+
+ /* ----- everyday ----- */
+ {id:"fridge",kind:"pool",title:"Midnight snack",where:"The Fridge",cond:()=>true,w:()=>2+(S.hunger<50?4:0),
+  intro:()=>"Your stomach growls. All eight legs agree. Across the field, the fridge hums in the dark. Its light is the only light for a mile.",
+  scene:()=>stage(fridge(1)+fly(175,75)+fly(205,78,.2)+fly(190,120,.1)+sp(90,168,{mood:"happy"})+bubble(48,96,"snacks!"),"The fridge"),
+  ch:[{label:"Catch flies",game:1,go:()=>({how:"Tap the flies before they get away!",mini:cb=>flyGame(fridge(1),9,8,n=>{S.flies+=n;hungry(n*6);
+    cb(out(n?`You snag ${n} flies out of the air. Cold, crunchy, perfect.`:"Every fly got away. Turns out cold flies are fast.",stage(fridge(1)+sp(110,168,{mood:n?"happy":"gross",grab:true})+bubble(40,70,n?`+${n} flies!`:"zero?!"),"After catching flies"),`caught ${n} flies`))})})},
+   {label:"Grab one and go",go:()=>{hungry(10);return out("You grab one fly and eat it on the walk home. Simple. Classy.",stage(fridge(0)+sp(100,168,{walk:true,mood:"happy"}),"Snack on the go"),"grabbed a quick snack")}}]},
+ {id:"swarm",kind:"pool",title:"Fly swarm!",where:"Everywhere",cond:()=>S.weather==="swarm",w:()=>8,
+  intro:()=>"The air is thick with flies. Free food is buzzing at face height. Zombies are swatting. Spiders are smiling.",
+  scene:()=>homeScene("",{mood:"happy"}),
+  ch:[{label:"Catch as many as you can",game:1,go:()=>({how:"So many flies. Tap tap tap!",mini:cb=>flyGame(home(),16,10,n=>{S.flies+=n;hungry(n*4);
+    cb(out(`You catch ${n} flies in ten seconds. Even the zombies are impressed.`,homeScene(bubble(110,80,`${n} flies!!`,84),{mood:"happy",grab:true}),`caught ${n} flies in the swarm`))})})},
+   {label:"Let your web do the work",go:()=>{const n=S.home*3+2;S.flies+=n;return out(`You nap while flies fly into your web. You wake up with ${n} of them. ${S.home<2?"A bigger web would catch more.":"Big webs are the best."}`,homeScene("",{mood:"sleep"}),`web caught ${n} flies`)}}]},
+ {id:"snake",kind:"pool",scary:1,title:"Snake on the path",where:"Snake Fields",cond:()=>true,w:()=>2+(S.weather==="fog"?6:0),
+  intro:()=>"The grass goes quiet. Too quiet. Then three heads rise up out of it, one at a time, and all three look at you.",
+  scene:()=>stage(snakeIdle()+sp(95,168,{mood:"scared"})+bubble(40,96,"THREE heads?!"),"A 3-headed snake"),
+  ch:[{label:"Bonk the heads",game:1,go:()=>({how:"Bonk the glowing head before it bites!",mini:cb=>snakeGame(6,b=>{S.heads+=b;if(b<3){smell(5);scare(8)}else scare(-6);
+    cb(out(b>=5?`You bonk ${b} heads in a row. The snake slithers off looking embarrassed.`:b>=3?`You bonk ${b} heads. The snake decides you're not worth it.`:`Only ${b} bonks. The snake chases you into a porta potty. You hide in the dark, listening to it hiss outside, until it leaves.`,stage(snakeNeck(220,150,200,170,"",0)+snakeNeck(250,150,250,176,"",0)+snakeNeck(280,150,300,170,"",0)+sp(110,168,{mood:b>=3?"happy":"gross"})+bubble(60,90,b>=3?"MISS ME!":"ugh"),"After the snake"),`bonked ${b} snake heads`))})})},
+   {label:"Stare down the middle head",go:()=>{S.heads+=3;scare(-5);return out(S.egg>=3?`The snake smells ${S.snakeNames} on you. All three heads bow. You are basically snake royalty now.`:"You stare at the middle head. It's the boss. It blinks first. The other two heads take a nap.",stage(`<ellipse cx="250" cy="184" rx="52" ry="10" fill="#4f7d2a"/>`+snakeNeck(210,150,190,150,"",0)+snakeNeck(255,150,250,140,"",0)+snakeNeck(290,150,310,150,"",0)+sp(130,168,{mood:"determined"})+bubble(226,100,"...fine.",64),"Staring down a snake"),"stared down a snake")}}]},
+ {id:"potty",kind:"pool",title:"Line at the porta potties",where:"Porta Potty Row",cond:()=>true,w:()=>1.5+(S.weather==="stink"?6:0),
+  intro:()=>"There's a line. There's always a line. Everyone in it is doing a little eight-legged dance.",
+  scene:()=>stage(potties()+stink(195,118)+stink(295,118)+pal(150,168,{flip:true})+sp(80,168,{mood:"gross",reach:true}),"Porta potty line"),
+  ch:[{label:"Wait in line",go:()=>{smell(10);scare(-4);const n=addPal();if(!S.items.clip&&Math.random()<.5){S.items.clip=1;return out(`You wait 40 minutes. The spider-person in front of you, ${n}, hands you a nose clip and says 'you'll need this.' You're friends now.`,stage(potties()+stink(245,118)+pal(150,168,{flip:true})+sp(90,168,{mood:"happy"})+bubble(110,92,"thanks!",62),"Getting a nose clip"),`met ${n}, got a nose clip`)}
+    return out(`You wait 40 minutes and chat with ${n} the whole time. Worst line, best new friend.`,stage(potties()+stink(245,118)+pal(150,168,{flip:true})+sp(90,168,{mood:"happy"})+bubble(110,92,"haha",50),"Making a friend in line"),`met ${n} in line`)}},
+   {label:"Try the bush instead",go:()=>{S.heads+=3;scare(8);return out("The bush had a snake in it. Of course it did. You leave very fast. All three heads were very offended.",stage(`<ellipse cx="250" cy="176" rx="40" ry="22" fill="#2f4d17"/>`+snakeNeck(230,140,215,120,"lunge",0)+snakeNeck(250,130,250,110,"lunge",.1)+snakeNeck(270,140,285,120,"lunge",.2)+sp(100,168,{mood:"scared",walk:true}),"A snake in the bush"),"found a snake in the bush")}}]},
+ {id:"stars",kind:"pool",title:"Stargazing",where:"Red Sky Hill",cond:()=>S.weather!=="stink"&&S.weather!=="blackout",w:()=>2+(S.weather==="calm"?2:0),
+  intro:()=>"It's a quiet night. Up on the hill the poop smell is a little weaker. A little. From up here, you can see the eyes in the bushes. They can see you too.",
+  scene:()=>stage(bigMoon()+hill()+sp(162,124,{scale:.85}),"Red Sky Hill",false),
+  ch:[{label:"Count the stars",go:()=>{smell(-15);scare(-8);return out(`The stars here are red. You count ${rnd(300,600)} before you fall asleep on the hill. Best sleep all month.`,stage(bigMoon()+hill()+sp(162,124,{scale:.85,mood:"sleep"})+bubble(100,52,"zzz",40),"Asleep on the hill",false),"counted stars")}},
+   {label:"Make a wish",go:()=>{if(Math.random()<.5){smell(-25);return out("You wish for less smell. A breeze comes. It doesn't fix everything, but it helps.",stage(bigMoon("wobble")+hill()+sp(162,124,{scale:.85,mood:"happy"}),"A wish",false),"wished for less smell")}
+    S.flies+=10;return out("You wish for snacks. Ten cold flies fall out of the sky, one at a time. Nobody can explain it.",stage(bigMoon()+hill()+fly(160,60)+fly(180,80,.2)+fly(200,70,.1)+sp(162,124,{scale:.85,mood:"happy",reach:true}),"Flies from the sky",false),"wished for snacks")}},
+   {label:"Howl at the moon",go:()=>{smell(-8);scare(-5);return out("You howl. Somewhere far away, a zombie village howls back. Then a porta potty door slams. Then silence. A long silence.",stage(bigMoon("wobble")+hill()+sp(162,124,{scale:.85,mood:"howl"})+bubble(80,60,"AWOOOO",76),"Howling",false),"howled at the moon")}}]},
+ {id:"market",kind:"pool",title:"Midnight zombie market",where:"Zombie Village",cond:()=>true,w:()=>2+(S.weather==="zmoon"?5:0),
+  intro:()=>"The zombie market only opens at midnight. Every stall is lit by one flickering candle. Everything costs flies. One stall has a glowing lantern.",
+  scene:()=>stage(village()+`<rect x="150" y="150" width="70" height="40" fill="#4a4a4a"/><rect x="146" y="140" width="78" height="12" fill="#6a6a6a"/>`+lantern(184,130)+zombie(250,"shamble")+sp(110,168),"Zombie market"),
+  ch:[{label:"Buy the lantern (8 flies)",cond:()=>!S.items.lantern&&S.flies>=8,go:()=>{S.flies-=8;S.items.lantern=1;scare(-15);return out("You buy the glowing lantern and hang it in your home. The eyes in the bushes don't come as close anymore.",homeScene("",{mood:"happy"}),"bought a lantern")}},
+   {label:"Buy a gray muffin (2 flies)",cond:()=>S.flies>=2,go:()=>{S.flies-=2;hungry(20);return out("The gray muffin tastes like a gray muffin. Somehow it's filling.",stage(village()+zombie(250,"")+sp(130,168,{mood:"gross"})+bubble(80,92,"...gray."),"Gray muffin"),"ate a gray muffin")}},
+   {label:"Just say hi",go:()=>out(pick(["You say hi to the zombie selling muffins. It says 'uhhh.' You say 'uhhh' back. A real conversation.","You say hi. Three zombies turn their heads toward you at the same time, very slowly. Then they wave. It takes a full minute."]),stage(village()+zombie(240,"shamble")+sp(120,168,{wave:true})+bubble(200,92,"uhhh",50),"Saying hi"),"said hi at the market")}]},
+ {id:"build",kind:"pool",title:"Home improvement",where:"Your home",cond:()=>S.home<3,w:()=>2.5,
+  intro:()=>`Your home is ${HOME_NAMES[S.home]}. ${S.home===0?"Things keep looking at you while you sleep. You need walls. Or at least a web.":"It could be more."}`,
+  scene:()=>homeScene(bubble(120,82,"hmm...",54),{mood:"determined"}),
+  ch:[{label:"Spin a bigger web",game:1,go:()=>({how:"Connect the pegs in order, fast!",mini:cb=>webGame(5+S.home,12,(k,n)=>{const ok=k===n;if(ok){S.home++;scare(-12)}
+    cb(out(ok?`It works. Your home is now ${HOME_NAMES[S.home]}.${S.home===3?" Spider-people walk by just to look at it.":" It's harder for things to sneak up on you now."}`:`You get ${k} of ${n} strands up before your legs tangle. Try again another night.`,homeScene(ok?bubble(110,40,"upgrade!",76):"",{mood:ok?"happy":"gross"}),ok?`upgraded home to ${HOME_NAMES[S.home]}`:"tried to build a web"))})})},
+   {label:"Nap in your web instead",go:()=>{smell(-5);return out("You take a long nap. Spiders are good at naps. Hanging upside down is very relaxing.",homeScene(bubble(120,82,"zzz",40),{mood:"sleep"}),"took a nap")}}]},
+ {id:"lost",kind:"pool",title:"A lost spiderling",where:"The road",cond:()=>!S.done.lost,w:()=>1.2,
+  intro:()=>"A tiny spiderling is crying next to a porta potty. They can't find their mom. Every spider-person looks the same from down there.",
+  scene:()=>stage(potty(270,0)+pipSp(220,181,{color:"#ff6bb5",mood:"scared"})+sp(130,168,{mood:"scared"})+bubble(180,124,"mama?",54),"Lost spiderling"),
+  ch:[{label:"Help find their mom",go:()=>{S.done.lost=1;const n=addPal();scare(-8);return out(`You carry the spiderling all over town. Their mom, ${n}, was in the hat shop. She gives you a hug with all eight legs. That's sixteen legs of hugging.`,stage(town()+sp(120,168,{mood:"happy"})+pal(230,168,{flip:true,mood:"happy"})+pipSp(190,181,{color:"#ff6bb5"})+bubble(180,92,"THANK YOU",86),"Reunited"),`helped a lost spiderling, met ${n}`)}},
+   {label:"Point them toward Spider Town",go:()=>{S.done.lost=1;return out("You point the way. The spiderling scurries off. Later you see them with their mom, waving at you.",stage(town()+pipSp(200,181,{color:"#ff6bb5",walk:true})+sp(120,168,{wave:true}),"Pointing the way"),"helped a lost spiderling")}}]},
+ {id:"hats",kind:"pool",title:"Hat shop sale",where:"Spider Town",cond:()=>!S.items.hat,w:()=>1.5,
+  intro:()=>"Hats are the biggest business in Spider Town, since nobody can find shoes for eight feet. There's a sale.",
+  scene:()=>stage(town()+sp(150,168)+pal(260,168,{flip:true}),"Hat shop"),
+  ch:[{label:"Buy a top hat (5 flies)",cond:()=>S.flies>=5,go:()=>{S.flies-=5;S.items.hat=1;return out("You buy a tall top hat. You look incredible. You wear it everywhere from now on.",stage(town()+`<rect x="226" y="96" width="44" height="94" rx="20" fill="#3a1a22" stroke="#d8c39a" stroke-width="3"/><g opacity=".7">${sp(248,168,{scale:.7,flip:true})}</g>`+sp(180,168,{mood:"happy"})+bubble(120,74,"fancy.",60),"Your new hat"),"bought a top hat")}},
+   {label:"Just window shop",go:()=>out("You press your face against the window. A hat costs 5 flies. You'll be back.",stage(town()+sp(50,168,{mood:"happy"}),"Window shopping"),"window shopped for hats")}]},
+ {id:"party",kind:"pool",title:"Birthday invite",where:"Spider Town",cond:()=>!S.items.socks,w:()=>1.5,
+  intro:()=>"A spider-person you don't know invites you to their birthday party. 'The more legs the better,' they say.",
+  scene:()=>stage(town()+sp(110,168)+pal2(230,168,{flip:true,party:true,wave:true})+bubble(180,92,"come!!",56),"Party invite"),
+  ch:[{label:"Go to the party",go:()=>{S.items.socks=1;const n=addPal();scare(-8);return out(`It's ${n}'s birthday. Everyone wears party hats. ${n} gives YOU a present: eight tiny socks. You put them on right away.`,stage(town()+confetti()+`<rect x="196" y="168" width="30" height="22" fill="#ffd8e8"/><rect x="196" y="164" width="30" height="6" fill="#ff6bb5"/>`+sp(150,168,{party:true})+pal2(260,168,{flip:true,party:true})+bubble(100,70,"8 socks!!"),"Birthday party"),`went to ${n}'s party, got socks`)}},
+   {label:"Stay home",go:()=>out("You stay home and hang in your web. You hear the party from far away. Next time.",homeScene("",{mood:"sleep"}),"skipped a party")}]},
+ {id:"perfume",kind:"pool",title:"Perfume drizzle!",where:"Outside",cond:()=>S.weather==="perfume",w:()=>10,
+  intro:()=>"For the first time all year, it smells like flowers. Pink drops are falling from the red sky. Everyone is outside.",
+  scene:()=>homeScene(bubble(110,82,"FLOWERS?!",86),{mood:"scared"}),
+  ch:[{label:"Dance in it",go:()=>{S.stink=5;scare(-10);return out("You dance in the perfume drizzle with every leg. For one night, you smell amazing. In the good way.",homeScene(pal(260,168,{flip:true,wave:true}),{wave:true}),"danced in the perfume rain")}},
+   {label:"Catch drops in your mouth",go:()=>{smell(-20);return out("It tastes like soap. You regret it. But you smell nice.",homeScene(bubble(110,82,"bleh",50),{mood:"gross"}),"tasted the perfume rain")}}]}
+];
+
+/* ---------- game flow ---------- */
+const CAL=EV.filter(e=>e.kind==="cal");
+function buildTonight(){
+  const list=EV.filter(e=>e.kind==="pin"&&e.cond()).slice(0,2);
+  const cal=CAL.find(e=>S.day>=e.at&&!S.done[e.id]);if(cal&&list.length<3)list.push(cal);
+  let pool=EV.filter(e=>(e.kind==="arc"||e.kind==="pool")&&e.cond()&&!list.includes(e));
+  while(list.length<3&&pool.length){
+    const tot=pool.reduce((a,e)=>a+e.w(),0);let r=Math.random()*tot;
+    const ix=pool.findIndex(e=>(r-=e.w())<=0);const e=pool[ix<0?0:ix];list.push(e);pool=pool.filter(x=>x!==e);
+  }
+  return list.map(e=>e.id);
+}
+function startNight(){
+  stopMini();S.pinkNight=false;SCRIPT=null;
+  if(S.day===1&&!S.arrived){S.weather="calm";$("game").hidden=false;return runChapter(1)}
+  const ch=chapterFor(S.day);
+  S.weather=ch?"calm":rollWeather();
+  const L=LV();S.lvUp=(S.lv&&L>S.lv)?L:0;S.lv=L;
+  if(S.lvUp)S.log.push({d:S.day,t:`Level up: mini-games are now ${LVN[L]}.`});
+  if(S.weather==="stink")smell(8);
+  if(S.weather==="blackout")scare(12);
+  if(S.weather==="fog")scare(4);
+  scare(-(1+Math.min(3,S.pals.length)+(S.items.lantern?2:0)+S.home));
+  hungry(S.items.belly?-3:-6);
+  if(S.items.glow)scare(-2);
+  if(ch){S.tonight=[];save();return runChapter(S.day)}
+  S.tonight=buildTonight();save();showTonight();
+}
+const THOUGHTS={calm:"too quiet...",stink:"is that Gerald?",swarm:"so many flies!",fog:"hisss...?",zmoon:"green moon?!",blackout:"...hello?",perfume:"flowers?!"};
+function thumbOf(e){THUMB=true;const pn=S.pinkNight;if(e.pink)S.pinkNight=true;let s="";try{s=e.scene()}catch(x){}S.pinkNight=pn;THUMB=false;return s}
+function showTonight(){
+  stopMini();render();
+  $("stage").innerHTML=homeScene(bubble(118,82,THOUGHTS[S.weather]),{mood:S.fear>65||S.weather==="blackout"?"scared":"happy"});
+  $("sWhere").textContent="What do you do tonight?";
+  $("sText").textContent=`${S.lvUp?`LEVEL UP! The Spider Verse is getting harder. Mini-games are now level ${S.lvUp}: ${LVN[S.lvUp]}. `:""}Your home: ${HOME_NAMES[S.home]}. ${S.fear>70?"Every shadow looks like it's moving. ":S.fear<25?"You're not scared of the dark anymore. Mostly. ":""}${S.hunger<35?"You're getting hungry. ":""}Pick one thing to do before the night ends.`;
+  const box=$("choices");box.className="choices events";box.innerHTML="";
+  S.tonight.map(id=>EV.find(e=>e.id===id)).filter(Boolean).forEach(e=>{
+    const b=document.createElement("button");b.className="evbtn";b.id="ev-"+e.id;
+    const tags=(e.kind==="pin"?`<span class="tag urgent">Urgent</span>`:e.kind==="cal"?`<span class="tag special">Special night</span>`:e.kind==="arc"?`<span class="tag story">Story</span>`:"")
+      +(e.scary?`<span class="tag scary">Scary</span>`:"")+(e.ch.some(c=>c.game)?`<span class="tag game">Mini-game Lv ${LV()}</span>`:"");
+    b.innerHTML=`<span class="th">${thumbOf(e)}</span><span class="tx"><b>${e.title}</b><small>${e.where}</small><span>${tags}</span></span>`;
+    b.onclick=()=>openEvent(e);box.appendChild(b)});
+}
+function openEvent(e){
+  S.visits[e.id]=(S.visits[e.id]||0)+1;if(e.pink)S.pinkNight=true;
+  if(e.scary){sting();scare(3)}
+  render();
+  $("stage").innerHTML=e.scene();$("sWhere").textContent=e.title;$("sText").textContent=e.intro();
+  const box=$("choices");box.className="choices";box.innerHTML="";
+  e.ch.filter(c=>!c.cond||c.cond()).forEach((c,i)=>{const b=document.createElement("button");b.id="ch-"+i;
+    b.innerHTML=icon(c.label)+`<span>${c.label}${c.game?` <span class="tag game" style="margin:0 0 0 4px">play</span>`:""}</span>`;b.onclick=()=>resolve(e,c);box.appendChild(b)});
+  const back=document.createElement("button");back.id="ch-back";back.style.fontWeight="400";back.innerHTML=icon("run")+"<span>Do something else</span>";
+  back.onclick=()=>{S.pinkNight=false;showTonight()};box.appendChild(back);
+}
+function resolve(e,c){
+  const r=c.go();
+  if(r.mini){$("choices").innerHTML="";$("sText").textContent=r.how;r.mini(res=>conclude(e,res));}
+  else conclude(e,r);
+}
+function conclude(e,r){
+  if(e.kind==="cal")S.done[e.id]=1;
+  $("stage").innerHTML=r.scene;$("sText").textContent=r.text;
+  S.log.push({d:S.day,t:`${e.title}: ${r.log||""}`});
+  S.tonight=[];render();save();showSleep();
+}
+function showSleep(){
+  const box=$("choices");box.className="choices";box.innerHTML="";
+  const a=document.createElement("button");a.id="sleep1";a.innerHTML=icon("sleep")+`<span>${S.day>=364?"Sleep (last night)":"Sleep until tomorrow"}</span>`;a.onclick=()=>sleep(1);
+  const b=document.createElement("button");b.id="sleepMore";b.innerHTML=icon("nap")+"<span>Sleep until something happens</span>";b.onclick=()=>sleep(skipLen());
+  box.append(a);if(S.day<364&&!(S.method&&STORY[S.method]&&STORY[S.method][S.day+1]))box.append(b);
+}
+function skipLen(){
+  const nextCal=CAL.filter(c=>!S.done[c.id]&&c.at>S.day).map(c=>c.at).sort((a,b)=>a-b)[0]||365;
+  return Math.max(1,Math.min(nextCal-S.day,rnd(4,9)));
+}
+function sleep(n){
+  S.pinkNight=false;
+  if(n>1){hungry(-4*(n-1));if(S.hunger<12)S.hunger=12;S.flies+=S.home*(n-1);scare(-(n-1))}
+  S.day=Math.min(365,S.day+n);
+  if(S.day>=365)return finish();
+  flash();startNight();window.scrollTo({top:0,behavior:"smooth"});
+}
+function flash(){const f=$("flash");f.classList.remove("go");void f.offsetWidth;f.classList.add("go")}
+
+const BADGES={hat:"Top hat",socks:"Eight tiny socks",clip:"Nose clip",lantern:"Lantern",jar:"Gerald in a jar",crown:"Fly King's crown",ribbon:"Gold web ribbon",mayor:"Mayor's best friend",starfish:"Starfish Trick",feather:"Raven feather",glow:"Purple glow",belly:"Never-hungry belly",friendly:"Friends with everyone",ticket:"One-way ticket",whistle:"Silver whistle",cap:"Conductor's hat"};
+const BADGE_METHOD={starfish:"raven",feather:"raven",glow:"julia",belly:"julia",friendly:"julia",ticket:"train",whistle:"train",cap:"train"};
+function mates(){const m=[];if(S.zed)m.push(S.zed>=4?"Mayor Zed":"Zed the zombie");if(S.egg===1||S.egg===2)m.push("A mysterious egg");if(S.egg>=3)m.push(S.snakeNames);if(S.pip)m.push("Pip");if(S.gerald===1||S.gerald===3)m.push("Gerald");if(S.ravenName)m.push(S.ravenName+" the raven");if(S.mothName)m.push(S.mothName+" the moth");return m}
+function render(){
+  $("dDay").textContent=S.day;$("dFlies").textContent=S.flies;$("dHeads").textContent=S.heads;$("dFriends").textContent=S.pals.length;
+  $("sDay").textContent="Night "+S.day;
+  $("hungerBar").style.width=S.hunger+"%";$("hungerTxt").textContent=S.hunger>70?"Stuffed":S.hunger>40?"Okay":S.hunger>15?"Hungry":"Starving";
+  $("stinkBar").style.width=S.stink+"%";$("stinkTxt").textContent=S.stink>85?"Awful":S.stink>60?"Bad":S.stink>30?"Gross":"Okay";
+  $("fearBar").style.width=S.fear+"%";$("fearTxt").textContent=S.fear>80?"Terrified":S.fear>60?"Scared":S.fear>35?"Jumpy":S.fear>15?"Brave":"Fearless";
+  $("lvTxt").textContent=`Mini-games: Lv ${LV()} ${LVN[LV()]}`;
+  const w=WEATHER[S.weather];$("wName").textContent=w[0];$("wTip").textContent=SCRIPT&&SCRIPT.tip?SCRIPT.tip:w[1];
+  const m=mates();$("mates").innerHTML=m.length?m.map(x=>`<span class="badge mate">${x}</span>`).join(""):`<span class="badge off">Just you (for now)</span>`;
+  $("badges").innerHTML=Object.entries(BADGES).filter(([k])=>!BADGE_METHOD[k]||BADGE_METHOD[k]===S.method).map(([k,n])=>`<span class="badge ${S.items[k]?"":"off"}">${S.items[k]?n:"???"}</span>`).join("");
+  $("diaryTitle").textContent=`Diary (${S.log.length} ${S.log.length===1?"entry":"entries"})`;
+  $("diary").innerHTML=S.log.slice().reverse().map(l=>`<li><span>Night ${l.d}</span>${l.t}</li>`).join("")||"<li>Nothing yet. Go do something.</li>";
+}
+// you, with two legs again
+function human(x,y,o={}){return `<g transform="translate(${x} ${y})"><g class="${o.cls||""}">
+  <path d="M-6 6 L-8 22 M6 6 L8 22" stroke="#2a3b6a" stroke-width="7" stroke-linecap="round"/>
+  <rect x="-12" y="-14" width="24" height="23" rx="7" fill="#3fbf5a"/>
+  <path d="M-11 -9 L-21 6" stroke="#e9b996" stroke-width="5" stroke-linecap="round"/>
+  <path d="${o.wave?"M11 -9 L22 -28":"M11 -9 L21 6"}" stroke="#e9b996" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="0" cy="-26" r="13" fill="#e9b996"/>
+  <path d="M-13.5 -26 Q-12 -44 0 -42 Q12 -44 13.5 -26 Q8 -34 0 -34 Q-8 -34 -13.5 -26Z" fill="#5a3320"/>
+  <circle cx="-5" cy="-28" r="1.8" fill="#1a0507"/><circle cx="5" cy="-28" r="1.8" fill="#1a0507"/>
+  <path d="M-5 -21 Q0 -16 5 -21" stroke="#1a0507" stroke-width="1.6" fill="none"/></g></g>`}
+function finish(){
+  stopMini();S.day=365;clearSave();
+  countdown(showEnd,["Your legs are tingling.","They're... disappearing.","Close your eyes.","3","2","1"]);
+}
+function showEnd(){
+  $("game").hidden=true;$("done").hidden=false;window.scrollTo(0,0);
+  S.weather="calm";
+  $("endStage").innerHTML=stage(`<g opacity=".3">${home()}${pal(268,168,{flip:true,wave:true,scale:.85})}${S.zed?zedFig(320):""}</g>`+`<g class="jump">${human(160,168,{wave:true})}</g>`+bubble(184,70,"TWO legs!!",86),"You, human again, waving goodbye to the fading Spider Verse",true,{fear:0});
+  const t=new Date(S.shiftedAt+1000);
+  $("clock").textContent=`It's ${t.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})}. Exactly 1 second after you shifted. You were gone for 365 nights. Was it a dream? You check your pocket. There's one cold fly in it.`;
+  const got=Object.keys(S.items).map(k=>BADGES[k]).filter(Boolean),m=mates();
+  $("summary").innerHTML=`<p style="margin:0 0 8px"><b>Your year in the Spider Verse</b></p>
+  <ul style="margin:0;padding-left:1.2em">
+  <li>Home: ${HOME_NAMES[S.home]}</li>
+  <li>Ate a lot of cold flies (${S.flies} still in your pocket)</li>
+  <li>Bonked ${S.heads} snake heads</li>
+  <li>Spider pals: ${S.pals.length?S.pals.join(", "):"none yet"}</li>
+  <li>Lived with: ${m.length?m.join(", "):"nobody, just you and the smell"}</li>
+  <li>Brought home: ${got.length?got.join(", "):"nothing but the smell"}</li>
+  <li>How scared you ended up: ${S.fear>60?"still very":S.fear>30?"a little":"not at all"}</li>
+  <li>You have two legs again. It feels like not enough legs.</li></ul>
+  <p style="margin:10px 0 0;color:var(--dim);font-size:14px">Somewhere far away, a porta potty knocks three times.</p>`;
+  $("mirror").hidden=true;$("camBtn").textContent="Open front camera";
+}
+
+/* ---------- mirror check (front camera through the phone's photo input) ---------- */
+let selfieURL=null;
+$("camBtn").onclick=()=>{$("cam").click()};
+$("cam").onchange=e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  if(selfieURL)URL.revokeObjectURL(selfieURL);selfieURL=URL.createObjectURL(f);
+  $("selfie").src=selfieURL;$("mirror").hidden=false;$("camBtn").textContent="Take another look";
+  const C=[["2","Legs: two. Not eight. You count twice to be sure."],["✓","Spider body: gone. Just a regular body. Weird."],["✓","Head: still yours. Still human."],["✓","Smell: normal. Like soap, not porta potty."],
+    ["?","Behind you in the mirror: nothing. Probably.","eerie"]];
+  $("checks").innerHTML=C.map(([m,t,c],i)=>`<li class="${c||""}" style="animation-delay:${1.1+i*.55}s"><b>${m}</b><span>${t}</span></li>`).join("");
+  sting();e.target.value="";
+  setTimeout(()=>$("mirror").scrollIntoView({behavior:"smooth",block:"center"}),100);
+};
+
+/* ---------- start ---------- */
+function countdown(then,steps=["Close your eyes.","3","2","1"]){
+  const d=$("dark"),t=$("darkTxt");d.hidden=false;
+  let i=0;
+  const go=()=>{if(i<steps.length){const s=steps[i++],num=/^\d$/.test(s);t.textContent=s;if(num&&soundOn&&AC)thump(AC.currentTime,.5);setTimeout(go,num?900:1500)}else{d.hidden=true;flash();then()}};
+  go();
+}
+/* ---------- shifting methods ---------- */
+const VIS={t:"Visualize the Spider Verse.",s:"Red sky. Porta potties. Three-headed snakes. Eight legs.",ms:3600};
+const METHODS={
+ raven:{name:"Raven method",steps:["Lay down in a starfish position.","Count to 100.","Visualize the Spider Verse."],
+  ritual:[{t:"Lay down like a starfish.",s:"Arms out. Legs out. Get comfy.",ms:3200},{t:"Now count to 100.",ms:1800},{count:100},VIS]},
+ julia:{name:"Julia method",sound:"theta",note:"Theta waves will play. Headphones help.",
+  steps:['Say your "I am" affirmations.',"Listen to theta waves.","Lay down in a comfortable position.","Count to 100.","Visualize the Spider Verse."],
+  ritual:[{t:"Say your affirmations.",s:"Out loud or in your head.",ms:2200},{t:"I am in the Spider Verse.",ms:2600},{t:"I am a spider-person.",ms:2600},{t:"I am brave.",ms:2400},{t:"I am back 1 second after I left.",ms:2800},
+   {t:"Listen to the theta waves.",s:"Let them get slow and heavy.",ms:3400},{t:"Lay down in a comfortable position.",ms:3000},{t:"Now count to 100.",ms:1800},{count:100},VIS]},
+ train:{name:"Train method",sound:"train",note:"Train sounds will play.",
+  steps:["Put on train sounds.","Imagine you're on a train to the Spider Verse.","Visualize the Spider Verse."],
+  ritual:[{t:"Listen to the train.",s:"clack-clack... clack-clack...",ms:3200},{t:"You're on a train to the Spider Verse.",s:"Your seat rocks. The window is dark.",ms:3600},
+   {t:"Look out the window.",s:"The sky is turning red. Something is waving at you from a porta potty.",ms:3800},{t:"Next stop...",ms:2000},{t:"The Spider Verse.",ms:2600},VIS]}
+};
+let chosen=null,ritT=null,ritSkip=null,bedNodes=[],bedT=null;
+function pickMethod(k){chosen=k;const M=METHODS[k];
+  $("mName").textContent=M.name;$("mSteps").innerHTML=M.steps.map(s=>`<li>${s}</li>`).join("");$("mNote").textContent=M.note||"";$("mNote").hidden=!M.note;
+  $("methods").hidden=true;$("confirm").hidden=false;$("yesBtn").focus()}
+document.querySelectorAll(".method").forEach(b=>b.onclick=()=>pickMethod(b.dataset.m));
+function ritual(steps,then){
+  const d=$("dark"),t=$("darkTxt"),s=$("darkSub");d.hidden=false;$("darkHint").hidden=false;let i=0;
+  const next=()=>{clearTimeout(ritT);ritSkip=null;
+    if(i>=steps.length){$("darkHint").hidden=true;s.textContent="";return then()}
+    const st=steps[i++];
+    if(st.count){let n=0;s.textContent="Slowly. Breathe.";
+      const c=()=>{n++;t.textContent=n;ritT=setTimeout(n>=st.count?next:c,n>=st.count?1200:400)};
+      ritSkip=()=>{clearTimeout(ritT);n=st.count;t.textContent=n;ritSkip=null;ritT=setTimeout(next,500)};c()}
+    else{t.textContent=st.t;s.textContent=st.s||"";ritSkip=next;ritT=setTimeout(next,st.ms||2600)}};
+  next();
+}
+$("dark").addEventListener("click",()=>{if(ritSkip)ritSkip()});
+function startBed(kind){const a=ac();if(!a)return;try{a.resume()}catch(e){}
+  const g=a.createGain();g.gain.setValueAtTime(0,a.currentTime);g.gain.linearRampToValueAtTime(kind==="theta"?.07:.14,a.currentTime+1.5);g.connect(a.destination);bedNodes=[g];
+  if(kind==="theta"){ // 6 Hz binaural beat: 200 Hz in one ear, 206 Hz in the other
+    [[200,-1],[206,1]].forEach(([f,p])=>{const o=a.createOscillator();o.frequency.value=f;
+      if(a.createStereoPanner){const pn=a.createStereoPanner();pn.pan.value=p;o.connect(pn).connect(g)}else o.connect(g);o.start();bedNodes.push(o)})}
+  else{ // train: low rumble + clack-clack
+    const buf=a.createBuffer(1,a.sampleRate*2,a.sampleRate),dt=buf.getChannelData(0);for(let i=0;i<dt.length;i++)dt[i]=Math.random()*2-1;
+    const src=a.createBufferSource();src.buffer=buf;src.loop=true;const lp=a.createBiquadFilter();lp.type="lowpass";lp.frequency.value=300;src.connect(lp).connect(g);src.start();bedNodes.push(src);
+    const clack=()=>{const t=a.currentTime;[0,.17].forEach(dl=>{const o=a.createBufferSource();o.buffer=buf;const bp=a.createBiquadFilter();bp.type="bandpass";bp.frequency.value=1600;
+      const cg=a.createGain();cg.gain.setValueAtTime(.6,t+dl);cg.gain.exponentialRampToValueAtTime(.001,t+dl+.09);o.connect(bp).connect(cg).connect(g);o.start(t+dl,Math.random());o.stop(t+dl+.12)})};
+    clack();bedT=setInterval(clack,1100)}
+}
+function stopBed(){clearInterval(bedT);const a=AC,g=bedNodes[0],ns=bedNodes.slice(1);bedNodes=[];if(!a||!g)return;
+  try{g.gain.cancelScheduledValues(a.currentTime);g.gain.setValueAtTime(g.gain.value,a.currentTime);g.gain.linearRampToValueAtTime(0,a.currentTime+1)}catch(e){}
+  setTimeout(()=>ns.forEach(n=>{try{n.stop()}catch(e){}}),1100)}
+function shift(){
+  const M=METHODS[chosen]||METHODS.raven;reset();S.method=chosen||"raven";$("confirm").hidden=true;
+  if(M.sound)startBed(M.sound);
+  ritual(M.ritual,()=>countdown(()=>{stopBed();$("intro").hidden=true;$("done").hidden=true;$("game").hidden=false;window.scrollTo(0,0);startNight()},["3","2","1"]));
+}
+$("introStage").innerHTML=stage(potty(20,0)+stink(26,118)+`<ellipse cx="300" cy="184" rx="40" ry="8" fill="#4f7d2a"/>`+snakeNeck(290,140,290,120,"sway",0).replace(/250 182/,"300 182")+`<g class="creep">${shadowSp(200,168)}</g>`+sp(110,168,{mood:"scared"})+eyePair(160,60,"#ffd23f",1,"lurk",1),"A spider-person in the red-sky world, and something behind them");
+const saved=loadSave();
+if(saved&&saved.day>1&&saved.day<365){$("continueBtn").hidden=false;$("continueBtn").textContent=`Continue (Night ${saved.day})`;$("mHead").textContent="Or start a new shift. Choose your method";
+  $("continueBtn").onclick=()=>{reset();S=Object.assign(S,saved);$("intro").hidden=true;$("game").hidden=false;if(chapterFor(S.day))return runChapter(S.day);if(!S.tonight||!S.tonight.length)S.tonight=buildTonight();showTonight()}}
+$("noBtn").onclick=()=>{$("confirm").hidden=true;$("methods").hidden=false};
+$("yesBtn").onclick=shift;
+$("againBtn").onclick=()=>{$("continueBtn").hidden=true;$("mHead").textContent="Choose your shifting method";$("methods").hidden=false;$("confirm").hidden=true;$("done").hidden=true;$("intro").hidden=false;window.scrollTo(0,0)};
+$("endBtn").onclick=()=>finish();
+</script>
+
+</body></html>
