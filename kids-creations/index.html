@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kids' Creations · Cultivate Play Studio</title>
+<meta name="description" content="Games and worlds dreamed up by kids and built with Cultivate Play Studio.">
+<link rel="icon" type="image/png" href="../favicon.png">
+<meta name="theme-color" content="#2E5AAE">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gluten:wght@700;800&family=Andika:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: same taped-card board as the home page; each kid creation is a card. */
+:root{--board:#2E5AAE;--board-ink:#FFFFFF;--sheet:#FFFFFF;--ink:#1D2333;--muted:#5D667A;--tape:rgba(238,226,178,.9);--accent:#E2483C;--accent-ink:#FFFFFF;--shadow:rgba(8,22,58,.32);
+  --font-display:"Gluten","Chalkboard SE","Comic Sans MS",cursive;--font-body:"Andika","Trebuchet MS",system-ui,sans-serif;color-scheme:light}
+@media (prefers-color-scheme: dark){:root{--board:#1C2925;--board-ink:#E6EEE9;--sheet:#283230;--ink:#ECF0EE;--muted:#A3AFAA;--tape:rgba(214,202,152,.34);--accent:#FF7A66;--accent-ink:#2A0E09;--shadow:rgba(0,0,0,.5);color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--board);color:var(--board-ink);font:18px/1.5 var(--font-body);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.wrap{max-width:960px;margin:0 auto;padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:32px}
+.back{color:inherit;font-weight:700;text-decoration:none;opacity:.85}
+.back:hover{opacity:1;text-decoration:underline}
+h1,h2{font-family:var(--font-display);margin:0;line-height:1.05;text-wrap:balance}
+h1{font-size:clamp(2.4rem,7vw,4rem);font-weight:800;rotate:-1.5deg}
+.lede{margin:0;max-width:56ch;font-size:1.1rem;opacity:.92}
+.apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:32px 24px}
+.app{position:relative;display:flex;gap:16px;align-items:center;background:var(--sheet);color:var(--ink);padding:20px;border-radius:3px;text-decoration:none;rotate:-1deg;box-shadow:0 14px 22px -14px var(--shadow);transition:rotate .15s,translate .15s}
+.app::before{content:"";position:absolute;top:-11px;left:50%;width:92px;height:24px;translate:-50% 0;rotate:-2.5deg;background:var(--tape);clip-path:polygon(3% 0,97% 0,100% 22%,96% 48%,100% 74%,97% 100%,3% 100%,0 76%,4% 50%,0 24%)}
+.app:hover{rotate:0deg;translate:0 -3px}
+.app:focus-visible{outline:3px solid #F2B705;outline-offset:4px}
+.app img{width:84px;height:84px;border-radius:20px;flex:none}
+.app h2{font-size:1.6rem}
+.app p{margin:4px 0 0;color:var(--muted);font-size:.95rem}
+.app .go{display:inline-block;margin-top:10px;background:var(--accent);color:var(--accent-ink);font-weight:700;border-radius:10px;padding:4px 12px;font-size:.9rem}
+footer{font-size:.9rem;opacity:.85}
+footer a{color:inherit;font-weight:700}
+@media (prefers-reduced-motion:reduce){.app{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">&larr; Cultivate Play Studio</a>
+  <header>
+    <h1>Kids' Creations</h1>
+  </header>
+  <p class="lede">Games and worlds dreamed up by kids. They make the rules, and we help build them.</p>
+  <main class="apps">
+    <a class="app" href="spider-verse/">
+      <img src="spider-verse/icon.svg" alt="">
+      <div>
+        <h2>Dr. Alyssa's Spider Verse</h2>
+        <p>A spooky shifting game. Pick your shifting method, then survive 365 nights in a red-sky world full of 3-headed snakes.</p>
+        <span class="go">Play</span>
+      </div>
+    </a>
+  </main>
+  <footer>Made by Cultivate Play Studio. Created by the therapists at <a href="https://cultivate-play.com/" target="_blank" rel="noopener">Cultivate Play Pediatric Therapy</a> in Murfreesboro, Tennessee.</footer>
+</div>
+</body>
+</html>
