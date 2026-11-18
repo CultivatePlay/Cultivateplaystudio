@@ -112,6 +112,11 @@ summary{cursor:pointer;font-weight:700}
 
 .backlink{position:absolute;z-index:6;top:calc(14px + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));color:var(--dim);font-size:13px;text-decoration:none}
 .backlink:hover{color:var(--ink)}
+.toast{position:fixed;z-index:9;left:50%;top:calc(58px + env(safe-area-inset-top,0px));transform:translateX(-50%);display:flex;gap:10px;align-items:center;width:max-content;max-width:min(92vw,420px);background:#25090c;border:2px solid var(--gold);color:var(--ink);border-radius:14px;padding:10px 14px;box-shadow:0 10px 30px rgba(0,0,0,.6);font-size:15px;line-height:1.35}
+.toast svg{width:26px;height:26px;color:var(--gold);flex:none}
+.toast b{color:var(--gold)}
+.toast.in{animation:toastIn .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes toastIn{from{transform:translateX(-50%) translateY(-30px) scale(.8);opacity:0}}
 .lv{margin-left:auto;color:var(--fear);font-weight:700;font-size:13px}
 .vh{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .mirrorcard{display:flex;flex-direction:column;gap:12px;border-color:var(--fear)}
@@ -173,12 +178,13 @@ summary{cursor:pointer;font-weight:700}
 .flicker{animation:flick 2.2s infinite}
 
 @media (max-width:460px){.hud{grid-template-columns:repeat(2,1fr)}.choices{grid-template-columns:1fr}.evbtn{grid-template-columns:118px 1fr}.evbtn b{font-size:16px}}
-@media (prefers-reduced-motion:reduce){.flick,.tw,.blink,.lurk,.stink,.buzz,.sway,.lunge,.shamble,.creep,.jump,.bob,.shake,.float,.breathe,.walk .la,.walk .lb,.wobble,.conf,.speed,.glow,.flicker,.flash.go,.dark p{animation:none!important}.lurk{opacity:1}}
+@media (prefers-reduced-motion:reduce){.flick,.tw,.blink,.lurk,.stink,.buzz,.sway,.lunge,.shamble,.creep,.jump,.bob,.shake,.float,.breathe,.walk .la,.walk .lb,.wobble,.conf,.speed,.glow,.flicker,.flash.go,.dark p,.toast.in{animation:none!important}.lurk{opacity:1}}
 </style>
 
 <div class="flash" id="flash"></div>
 <div class="dark" id="dark" hidden><p id="darkTxt"></p><span class="dsub" id="darkSub"></span><small class="dhint" id="darkHint" hidden>tap to skip</small></div>
 <button class="sound" id="soundBtn" aria-pressed="false">Sound: off</button>
+<div class="toast" id="toast" role="status" hidden></div>
 
 <div class="wrap">
   <!-- INTRO -->
@@ -198,9 +204,9 @@ summary{cursor:pointer;font-weight:700}
         <li>There are snakes everywhere too.</li>
         <li>The snakes are 3-headed.</li>
       </ol>
-      <p style="margin:12px 0 0;color:var(--dim);font-size:14px">You will stay exactly 1 year, and you will return to 1 second after you shifted.</p>
+      <p style="margin:12px 0 0;color:var(--dim);font-size:14px">You will stay 1 year, and you will return to 1 second after you shifted. <b style="color:var(--gold)">But every mini-game you fail keeps you 3 more nights.</b></p>
     </div>
-    <p class="warn">Once you shift, there is no going back early. 365 nights. No sunrise.</p>
+    <p class="warn">Once you shift, there is no going back early. 365 nights. Maybe more. No sunrise.</p>
     <button class="big" id="continueBtn" hidden>Continue</button>
     <div class="card methods" id="methods">
       <p class="mhead" id="mHead">Choose your shifting method</p>
@@ -221,7 +227,7 @@ summary{cursor:pointer;font-weight:700}
   <!-- GAME -->
   <section id="game" hidden style="display:flex;flex-direction:column;gap:12px">
     <div class="hud">
-      <div><b id="dDay">1</b><span>Night / 365</span></div>
+      <div><b id="dDay">1</b><span>Night / <span id="dTot">365</span></span></div>
       <div><b id="dFlies">0</b><span>Cold flies</span></div>
       <div><b id="dHeads">0</b><span>Heads bonked</span></div>
       <div><b id="dFriends">0</b><span>Spider pals</span></div>
@@ -248,7 +254,7 @@ summary{cursor:pointer;font-weight:700}
       <div class="badges" id="badges"></div>
     </div>
     <details><summary id="diaryTitle">Diary</summary><ul class="diary" id="diary"></ul></details>
-    <button class="ghost" id="endBtn">Skip to night 365</button>
+    <button class="ghost" id="endBtn">Skip to the last night</button>
   </section>
 
   <!-- RETURN -->
@@ -280,7 +286,7 @@ const G="#3fbf5a";
 const KEY="spiderverse-save-v3";
 let S;
 function reset(){S={day:1,hunger:70,stink:60,fear:90,flies:3,heads:0,pals:[],items:{},done:{},visits:{},home:0,arrived:0,
-  method:null,ravenName:"",mothName:"",zed:0,zedDay:0,zedWord:"",egg:0,eggDay:0,snakeNames:"",gerald:0,geraldDay:0,pip:0,knock:0,knockDay:0,
+  method:null,extra:0,king:0,kingDay:0,ravenName:"",mothName:"",zed:0,zedDay:0,zedWord:"",egg:0,eggDay:0,snakeNames:"",gerald:0,geraldDay:0,pip:0,knock:0,knockDay:0,
   weather:"calm",tonight:[],log:[],pinkNight:false,shiftedAt:Date.now()}}
 reset();
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
@@ -364,20 +370,22 @@ function sp(x,y,o={}){
     howl:`<ellipse cx="0" cy="-18" rx="4" ry="5" fill="#1a0507"/>`}[m]||"";
   const sweat=(m==="scared"||m==="scream")&&!sh?`<path d="M12 -34 q3 5 0 7 q-3 -2 0 -7z" fill="#9fd8ff"/>`:"";
   const CAPS=`<path d="M-12 -38 h24 v-8 q-12 -6 -24 0z" fill="#1d2b5a"/><rect x="-15" y="-39" width="30" height="3.5" rx="1.5" fill="#0e1633"/><circle cx="0" cy="-43" r="2" fill="#ffd23f"/>`;
-  const hat=o.cap?CAPS:o.party?`<path d="M-8 -37 L0 -60 L8 -37Z" fill="#ff6bb5" stroke="#fff" stroke-width="1"/><circle cx="0" cy="-61" r="3" fill="#ffd23f"/>`
+  const hat=o.crown?`<path d="M-10 -38 L-10 -50 L-5 -44 L0 -53 L5 -44 L10 -50 L10 -38Z" fill="#ffd23f" stroke="#a57a10" stroke-width="1"/><circle cx="0" cy="-43" r="1.8" fill="#e2483d"/>`:o.cap?CAPS:o.party?`<path d="M-8 -37 L0 -60 L8 -37Z" fill="#ff6bb5" stroke="#fff" stroke-width="1"/><circle cx="0" cy="-61" r="3" fill="#ffd23f"/>`
     :(me&&S.items.crown)?`<path d="M-10 -38 L-10 -50 L-5 -44 L0 -53 L5 -44 L10 -50 L10 -38Z" fill="#ffd23f" stroke="#a57a10" stroke-width="1"/>`
     :(me&&S.items.hat)?`<rect x="-9" y="-57" width="18" height="16" fill="#151515" stroke="${G}" stroke-width="1.2"/><rect x="-9" y="-46" width="18" height="3" fill="${G}"/><rect x="-15" y="-42" width="30" height="3.5" rx="1.5" fill="#151515"/>`:(me&&S.items.cap)?CAPS:"";
+  const cape=(o.cape||(me&&S.items.cape))?`<path d="M-13 -16 Q-32 8 -26 20 L26 20 Q32 8 13 -16Z" fill="#a3326e" stroke="#ffd23f" stroke-width="1.2"/>`:"";
+  const beard=o.beard?`<path d="M-11 -21 Q0 0 11 -21 Q6 -13 0 -12 Q-6 -13 -11 -21Z" fill="${hair}"/>`:"";
   const aura=(me&&S.items.glow)?`<circle class="glow" cx="0" cy="-8" r="36" fill="#a77bff" opacity=".22"/>`:"";
   const ribbon=(me&&S.items.ribbon)?`<circle cx="10" cy="2" r="5" fill="#ffd23f"/><path d="M8 6 l-2 8 M12 6 l2 8" stroke="#e2483d" stroke-width="2.5"/>`:"";
   const clip=(me&&S.items.clip)?`<rect x="-3.5" y="-26" width="7" height="4" rx="1.5" fill="#6bc4ff"/>`:"";
   const shk=(m==="scared"||m==="scream")&&!o.walk&&!o.cls?"shake":"";
-  return `<g transform="translate(${x} ${y}) scale(${f*s} ${s})"><g class="${o.cls||""} ${o.walk?"walk bob":""} ${shk}">${aura}
+  return `<g transform="translate(${x} ${y}) scale(${f*s} ${s})"><g class="${o.cls||""} ${o.walk?"walk bob":""} ${shk}">${aura}${cape}
     <g stroke="${col}" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">${legs}</g>${socks}
     <ellipse cx="0" cy="3" rx="16" ry="11" fill="${sh?"#0b0102":"#1e2b20"}" stroke="${col}" stroke-width="2"/>
     ${sh?"":`<path d="M-8 1 h16 M-6 6 h12" stroke="${col}" stroke-width="1.2" opacity=".6"/>`}${ribbon}
     <circle cx="0" cy="-26" r="13" fill="${skin}"/>
     <path d="M-13.5 -26 Q-12 -44 0 -42 Q12 -44 13.5 -26 Q8 -34 0 -34 Q-8 -34 -13.5 -26Z" fill="${hair}"/>
-    ${eyes}${brows}${mouth}${sweat}${clip}${hat}</g></g>`;
+    ${eyes}${brows}${beard}${mouth}${sweat}${clip}${hat}</g></g>`;
 }
 const pal=(x,y,o={})=>sp(x,y,{color:"#d36bff",skin:"#b07a55",hair:"#1b1b1b",...o});
 const pal2=(x,y,o={})=>sp(x,y,{color:"#ffb23f",skin:"#f0c9a8",hair:"#c8452c",...o});
@@ -934,6 +942,66 @@ function endChapter(say){
   render();$("sDay").textContent=`Night ${S.day} · ${c.title}`;save();showSleep();
 }
 
+/* ---------- staying longer: every failed mini-game keeps you 3 more nights ---------- */
+const FAIL_NIGHTS=3;
+const total=()=>365+(S.extra||0);
+const atOf=e=>e.id==="goodbye"?total()-1:e.at;
+let toastT=null;
+function stayLonger(){
+  S.extra=(S.extra||0)+FAIL_NIGHTS;
+  S.log.push({d:S.day,t:`Failed a mini-game. +${FAIL_NIGHTS} nights in the Spider Verse.`});
+  const t=$("toast");
+  t.innerHTML=`<svg viewBox="0 0 28 28" aria-hidden="true"><path d="M3 22 L3 8 L9 14 L14 5 L19 14 L25 8 L25 22Z" fill="currentColor"/></svg><span>${S.king?"The Spider King saw that.":"You failed!"} <b>+${FAIL_NIGHTS} nights</b> in the Spider Verse.</span>`;
+  t.hidden=false;t.classList.remove("in");void t.offsetWidth;t.classList.add("in");
+  clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true},4200);
+  sting();render();
+}
+// wrap a mini-game so a failed result adds nights; ti = index of its callback argument
+function failable(fn,ti,isFail){return function(...a){const then=a[ti];a[ti]=(...r)=>{if(isFail(r,a))stayLonger();then(...r)};return fn.apply(this,a)}}
+flyGame=failable(flyGame,3,(r,a)=>r[0]<Math.ceil(a[1]/3));
+snakeGame=failable(snakeGame,1,(r,a)=>r[0]<Math.ceil(a[0]/2));
+webGame=failable(webGame,2,r=>r[0]<r[1]);
+chaseGame=failable(chaseGame,2,r=>!r[0]);
+eyeGame=failable(eyeGame,1,(r,a)=>r[0]<Math.ceil(a[0]/2));
+freezeGame=failable(freezeGame,1,r=>!r[0].ok);
+wordGame=failable(wordGame,3,r=>!r[0].ok);
+dropGame=failable(dropGame,1,(r,a)=>r[0]<Math.ceil(a[0]/2));
+trackGame=failable(trackGame,1,r=>r[0].hits>=3);
+danceGame=failable(danceGame,1,r=>!r[0].ok);
+
+/* ---------- the Spider King ---------- */
+const herald=(x,y)=>sp(x,y,{scale:.5,color:"#6bc4ff",skin:"#f0c9a8",hair:"#7a4a2a",flip:true})+`<path d="M${x-6} ${y-13} l-16 -6 v12z" fill="#ffd23f" stroke="#a57a10"/><path d="M${x-4} ${y-26} q8 -10 16 -4" stroke="#ff6bb5" stroke-width="3" fill="none"/>`;
+const spiderKing=(x,y,o={})=>sp(x,y,{scale:1.9,color:"#ffd23f",skin:"#d9a47a",hair:"#f2f2f2",crown:1,cape:1,beard:1,flip:true,mood:"determined",...o});
+function guard(x,f){const sx=x+(f?-28:28);return sp(x,168,{scale:1.25,color:"#9aa3ab",skin:"#c99a7a",hair:"#333",flip:f,mood:"determined"})+
+  `<path d="M${x-17} 131 Q${x} 98 ${x+17} 131Z" fill="#9aa3ab" stroke="#5a6068"/><path d="M${sx} 190 V86" stroke="#8c6a3a" stroke-width="3"/><path d="M${sx-5} 88 l5 -14 l5 14z" fill="#d8dde3"/>`}
+function castle(open){return `<path d="M0 192 Q180 140 360 192Z" fill="#2a0709"/><g><rect x="96" y="56" width="26" height="128" fill="#3a3f4a" stroke="#c9cfd6" stroke-width="1.5"/><rect x="238" y="56" width="26" height="128" fill="#3a3f4a" stroke="#c9cfd6" stroke-width="1.5"/>
+  <path d="M92 58 L109 30 L126 58Z M234 58 L251 30 L268 58Z" fill="#c9cfd6"/><path d="M109 30 v-12 l10 4 l-10 4" fill="#e2483d" stroke="#c9cfd6"/><path d="M251 30 v-12 l10 4 l-10 4" fill="#e2483d" stroke="#c9cfd6"/>
+  <rect x="122" y="84" width="116" height="100" fill="#2a2f3a" stroke="#c9cfd6" stroke-width="1.5"/>${web(180,84,30)}
+  <path d="M156 184 V148 Q180 120 204 148 V184Z" fill="${open?"#ffd23f":"#0b0102"}" opacity="${open?.55:1}"/>${open?"":`<path d="M156 152 L204 184 M204 152 L156 184 M180 128 V184" stroke="#c9cfd6" stroke-width="1"/>`}</g>`}
+function throneRoom(noThrone){return `<rect width="360" height="220" fill="#1b1d26"/>${[40,320].map(x=>`<rect x="${x-10}" y="0" width="20" height="192" fill="#2a2f3a" stroke="#c9cfd6" stroke-width="1"/>`).join("")}
+  ${web(70,30,40)}${web(290,30,40)}<path d="M80 220 L150 192 L350 192 L360 220Z" fill="#7a1a24"/>
+  ${noThrone?"":`<g><rect x="218" y="80" width="64" height="112" rx="4" fill="#ffd23f" stroke="#a57a10" stroke-width="2"/><path d="M212 84 Q250 56 288 84Z" fill="#e8b92a" stroke="#a57a10"/><circle cx="250" cy="96" r="6" fill="#a57a10"/></g>`}`}
+const kingLen=()=>4+LV();
+// the King lights up his legs in a pattern; copy it. The pattern grows by one each round.
+function danceGame(maxLen,then){
+  const L=LV(),spd=[0,650,560,480,420,360][L],PADS=[[66,"#ff6bb5"],[142,"#ffd23f"],[218,"#6bc4ff"],[294,"#3fbf5a"]];
+  $("stage").innerHTML=stage(throneRoom(1)+spiderKing(180,108,{scale:1.05})+
+    PADS.map(([x,c],i)=>`<g data-hit="${i}" style="cursor:pointer"><circle cx="${x}" cy="174" r="28" fill="#000" fill-opacity="0"/><circle id="pd${i}" cx="${x}" cy="174" r="20" fill="${c}" opacity=".35" stroke="${c}" stroke-width="3"/>${web(x,174,14)}</g>`).join("")+hud(),"Copy the King's dance mini-game",false,{fear:0});
+  const seq=Array.from({length:3},()=>rnd(0,3));let step=0,phase="show",live=true,to;
+  const lit=(i,on)=>{const e=$("pd"+i);if(e){e.setAttribute("opacity",on?1:.35);e.setAttribute("r",on?25:20)}};
+  const tone=i=>{if(!soundOn||!AC)return;const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime;o.frequency.value=[330,392,494,587][i];g.gain.setValueAtTime(.08,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+.32)};
+  const upd=()=>{const t=$("mt");if(t)t.textContent=`Round ${seq.length-2}/${maxLen-2} · ${phase==="show"?"watch...":"your turn!"}`};
+  function playback(){phase="show";step=0;upd();fb("watch the King...");let k=0;
+    const next=()=>{if(!live)return;if(k>=seq.length){phase="input";upd();fb("your turn!");return}const i=seq[k++];lit(i,true);tone(i);to=setTimeout(()=>{lit(i,false);to=setTimeout(next,spd*.45)},spd)};
+    to=setTimeout(next,800)}
+  function halt(){live=false;clearTimeout(to)}
+  function done(ok){if(!live)return;halt();MINI=null;setTimeout(()=>then({ok,round:seq.length-2}),700)}
+  playback();
+  MINI={hit(i){if(!live||phase!=="input")return;lit(i,true);tone(i);setTimeout(()=>lit(i,false),220);
+    if(i!==seq[step]){fb("WRONG STEP!");return done(false)}
+    step++;if(step===seq.length){if(seq.length>=maxLen){fb("PERFECT!");return done(true)}seq.push(rnd(0,3));phase="show";fb(pick(["nice!","the King frowns...","again!"]));upd();to=setTimeout(playback,700)}},stop:halt};
+}
+
 /* ---------- events ---------- */
 // kind: pin (urgent), cal (special night), arc (story), pool (everyday). scary:true plays a sting and shows a Scary tag.
 const out=(text,scene,log)=>({text,scene,log});
@@ -985,7 +1053,7 @@ const EV=[
   ch:[{label:"Bake a fly pie",cond:()=>S.flies>=4,go:()=>{S.flies-=4;const win=S.zed>=3;if(win)addPal();return out(win?`Zed tastes your fly pie and says "${S.zedWord}!" It wins first place. The other zombies want your recipe.`:"Your fly pie comes in second place, behind a gray cake that is just a rock. You're still proud.",stage(village()+`<ellipse cx="180" cy="160" rx="24" ry="8" fill="#c08a4a"/>`+fly(172,150)+fly(188,148,.2)+sp(110,168,{mood:"happy"})+(S.zed?zedFig(260):zombie(260,""))+bubble(200,92,win?S.zedWord+"!":"uhhh",70),"Your fly pie"),win?"won the Zombie Bake-Off":"got 2nd at the Bake-Off")}},
    {label:"Taste-test gray muffins",go:()=>{hungry(30);return out("You eat eleven gray muffins. They taste like... gray. You're full for days.",stage(village()+zombie(240,"shamble")+sp(140,168,{mood:"gross"})+bubble(90,92,"so gray"),"Eating gray muffins"),"ate gray muffins")}}]},
  {id:"goodbye",kind:"cal",at:364,title:"Your Goodbye Party",where:"Your home",
-  intro:()=>"Tomorrow is night 365. Everybody you know shows up at your web with snacks. Even some snakes. Even the eyes in the bushes seem a little sad.",
+  intro:()=>"Tomorrow is your last night. "+(S.extra?`(The Spider King kept you ${S.extra} extra.) `:"")+"Everybody you know shows up at your web with snacks. Even some snakes. Even the eyes in the bushes seem a little sad."+(S.king===3?" The Spider King comes too, and cries into his beard.":""),
   scene:()=>homeScene(confetti()+pal(260,168,{flip:true,party:true,scale:.8}),{party:true,mood:"happy"}),
   ch:[{label:"Give a goodbye speech",go:()=>out(`You stand on your ${HOME_NAMES[S.home]} and thank everyone. ${S.pals.length?S.pals.length+" spider pals":"The zombies"} cheer. ${S.zed?`Zed says "${S.zedWord||"uhhh"}" very quietly.`:""} You'll miss the smell. Kind of.`,homeScene(confetti()+bubble(110,40,"thank you!!",96),{party:true,wave:true}),"said goodbye")},
    {label:"One last midnight snack",go:()=>{hungry(40);return out("You eat one last fridge fly with everyone. It's the coldest, crunchiest fly of the year. Perfect ending.",homeScene(confetti()+fly(200,120),{party:true,grab:true}),"had one last snack")}}]},
@@ -1092,6 +1160,33 @@ const EV=[
   ch:[{label:"Stake out the fridge",go:()=>{S.pip=1;scare(-8);return out("You hide all night. At 3am a tiny spiderling climbs out holding one fly. They say their name is Pip and they're very sorry and very hungry. Pip lives with you now.",stage(fridge(1)+pipSp(195,135)+sp(90,168,{mood:"happy"})+bubble(150,90,"sorry!!",62),"Meeting Pip"),"met Pip the fridge thief")}},
    {label:"Set a web trap",go:()=>{S.pip=1;scare(-8);return out("Your web trap catches a tiny spiderling named Pip, upside down, still holding a fly. You let Pip go. Pip doesn't leave. Pip lives with you now.",stage(fridge(1)+web(195,120,30)+pipSp(195,128,{flip:true})+sp(90,168,{mood:"happy"})+bubble(150,70,"hi...",44),"Catching Pip"),"caught Pip in a web")}}]},
 
+ /* ----- story: the Spider King ----- */
+ {id:"king0",kind:"arc",title:"A royal announcement",where:"Spider Town square",cond:()=>!S.king&&S.day>=12,w:()=>3+(S.extra?3:0),
+  intro:()=>`A tiny spider in a feathered hat blows a tiny trumpet. TOOT. "Hear ye! By order of His Royal Leggyness, THE SPIDER KING: anyone who fails a test shall stay in the Spider Verse LONGER!" ${S.extra?`He looks right at you. "Like YOU. ${S.extra} extra nights so far."`:"He looks right at you, like he's waiting for you to mess up."}`,
+  scene:()=>stage(town()+herald(240,181)+bubble(170,92,"HEAR YE!",72)+sp(110,168,{mood:"scared"}),"A tiny royal herald with a trumpet"),
+  ch:[{label:"Bow to the herald",go:()=>{S.king=1;S.kingDay=S.day;return out("You bow. The herald nods, very serious. \"The King has heard of you,\" he whispers. \"He LIKES keeping people. Be careful.\" Then he toots once and scurries off.",stage(town()+herald(250,181)+sp(130,168,{mood:"scared"}),"Bowing to the herald"),"heard about the Spider King")}},
+      {label:"Ask to meet the King",go:()=>{S.king=1;S.kingDay=S.day;scare(5);return out("\"Can I meet him?\" The whole square goes quiet. The herald laughs a tiny laugh. \"Nobody ASKS to meet the King. But... I'll tell the guards you're coming.\"",stage(town()+herald(250,181)+bubble(190,100,"ha. ha.",60)+sp(130,168,{mood:"determined"}),"Asking to meet the King"),"asked to meet the Spider King")}}]},
+ {id:"king1",kind:"arc",scary:1,title:"The King's guards",where:"The Web Castle gate",cond:()=>S.king===1&&S.day>=S.kingDay+5,w:()=>5,
+  intro:()=>"A castle made of web, glowing silver, sits on top of the tallest hill. Two GIANT spider guards block the gate. Helmets. Spears. Very serious faces. \"Halt. Answer the riddle or go home.\" The left one clears his throat. \"What has eight legs, a human head, and is standing right in front of us?\"",
+  scene:()=>stage(castle()+guard(130)+guard(250,1)+sp(190,180,{scale:.6,mood:"scared"}),"Two giant spider guards at a web castle"),
+  ch:[{label:"\"Me!\"",go:()=>{S.king=2;S.kingDay=S.day;scare(-5);return out("\"...Correct,\" says the left guard. He looks disappointed. Nobody ever gets it. The gate creaks open and gold light spills out. \"The King will see you. Soon.\"",stage(castle(1)+guard(110)+guard(270,1)+sp(190,180,{scale:.6,mood:"happy"}),"The castle gate opening"),"answered the guards' riddle")}},
+      {label:"\"A zombie\"",go:()=>{S.kingDay=S.day;scare(5);return out("\"Zombies have TWO legs,\" says the right guard. \"Come back when you've counted.\" They point their spears at the road home.",stage(castle()+guard(130)+guard(250,1)+sp(190,180,{scale:.6,mood:"gross"}),"Wrong answer"),"got the guards' riddle wrong")}},
+      {label:"\"The fridge\"",go:()=>{S.kingDay=S.day;return out("Both guards stare at you for a very long time. \"The fridge,\" says one, \"does not have a HEAD.\" \"...Does it?\" says the other. They're still arguing about it when you leave.",stage(castle()+guard(130)+guard(250,1)+sp(190,180,{scale:.6,mood:"happy"}),"Confused guards"),"confused the guards")}}]},
+ {id:"king2",kind:"arc",title:"The Spider King",where:"The Throne Room",cond:()=>S.king===2&&S.day>=S.kingDay+3,w:()=>6,
+  intro:()=>`${S.visits.king2>1?"You're back in the throne room for a rematch. ":""}On a golden porta potty throne sits the biggest spider-person you have ever seen. A crown. A cape. A long white beard. Sixteen rings, two on every leg. "So YOU'RE the new one," booms the Spider King. "${S.extra?`I've kept you ${S.extra} extra nights already. `:""}I keep everyone who fails. It gets lonely being King." He leans down. "Copy my royal dance, and I'll give you nights BACK. Mess it up... and you stay longer."`,
+  scene:()=>stage(throneRoom()+spiderKing(250,150)+sp(90,168,{mood:"scared"}),"The Spider King on a golden porta potty throne",false),
+  ch:[{label:"Copy the King's dance",game:1,go:()=>({how:"Watch the King's web pads light up, then tap them in the same order!",mini:cb=>danceGame(kingLen(),r=>{
+      if(r.ok){const back=Math.min(S.extra||0,9);S.extra=(S.extra||0)-back;S.king=3;S.items.cape=1;if(!S.pals.includes("The Spider King"))S.pals.push("The Spider King");scare(-15);
+        cb(out(`You copy every single step. The King stops. His beard twitches. Then he laughs so hard his crown falls off. "NOBODY beats my dance!" ${back?`He waves a leg, and ${back} of your extra nights disappear.`:"\"And you don't even owe me any nights. Impressive.\""} He puts a tiny royal cape on you. "Come to my feasts. That's an order."`,stage(throneRoom()+confetti()+spiderKing(250,150,{mood:"happy"})+sp(110,168,{mood:"happy",wave:true}),"The Spider King laughing",false),`beat the Spider King${back?` and got ${back} nights back`:""}`))}
+      else{S.kingDay=S.day;cb(out(`You mix up a step in round ${r.round}. "HA!" booms the King. "Three more nights for you!" He wipes a happy tear out of his beard. "Come back for a rematch whenever you like. I'll be here. I'm ALWAYS here."`,stage(throneRoom()+spiderKing(250,150,{mood:"happy"})+sp(90,168,{mood:"gross"})+bubble(120,30,"HA HA HA!",80),"The Spider King wins",false),`lost the dance to the Spider King`))}})})},
+      {label:"Ask why he keeps people",go:()=>{S.kingDay=S.day;scare(-5);return out(`"Why do you keep people?" you ask. The King goes quiet. "Everyone leaves after one year. Every single one. I've been King for a thousand years." He sniffs. "Come back and play with me sometime." He sounds a lot less scary now.`,stage(throneRoom()+spiderKing(250,150,{mood:"sleep"})+sp(90,168),"A sad Spider King",false),"learned why the King keeps people")}},
+      {label:"Run away",go:()=>{S.kingDay=S.day;scare(8);return out("You run. His laugh follows you all the way down the hill. \"COME BACK ANYTIME!\"",stage(castle()+sp(70,168,{mood:"scared",walk:true}),"Running from the castle"),"ran from the Spider King")}}]},
+ {id:"feast",kind:"pool",title:"The King's Feast",where:"The Web Castle",cond:()=>S.king===3,w:()=>1.6,
+  intro:()=>"The tiny herald shows up at your web with a royal invitation. Tonight the Spider King is throwing a feast. Everyone's invited. Even the zombies. Even the snakes. Especially you.",
+  scene:()=>stage(throneRoom()+`<rect x="30" y="160" width="160" height="8" fill="#ffd23f"/>`+fly(60,150)+fly(100,148,.2)+fly(140,150,.1)+spiderKing(250,150,{mood:"happy"})+sp(110,168,{party:true}),"The King's feast",false),
+  ch:[{label:"Eat royal flies",go:()=>{S.flies+=8;hungry(35);return out("Golden flies on silver plates. The King eats forty. You eat eight and take the rest home in your cape.",stage(throneRoom()+spiderKing(250,150,{mood:"happy"})+sp(110,168,{mood:"happy",grab:true})+bubble(60,90,"royal crunch"),"Feasting",false),"feasted with the Spider King")}},
+      {label:"Dance with the King",go:()=>{scare(-12);const back=S.extra?1:0;S.extra=(S.extra||0)-back;return out(`The King dances with all eight legs. So do you. Sixteen legs of dancing. ${back?"He's so happy he takes one night off your stay.":"Everyone claps. Slowly. The zombies are trying their best."}`,stage(throneRoom()+confetti()+spiderKing(250,150,{mood:"happy",wave:true})+sp(110,168,{wave:true}),"Dancing with the King",false),`danced with the King${back?" (1 night back)":""}`)}}]},
+
  /* ----- everyday ----- */
  {id:"fridge",kind:"pool",title:"Midnight snack",where:"The Fridge",cond:()=>true,w:()=>2+(S.hunger<50?4:0),
   intro:()=>"Your stomach growls. All eight legs agree. Across the field, the fridge hums in the dark. Its light is the only light for a mile.",
@@ -1162,7 +1257,7 @@ const EV=[
 const CAL=EV.filter(e=>e.kind==="cal");
 function buildTonight(){
   const list=EV.filter(e=>e.kind==="pin"&&e.cond()).slice(0,2);
-  const cal=CAL.find(e=>S.day>=e.at&&!S.done[e.id]);if(cal&&list.length<3)list.push(cal);
+  const cal=CAL.filter(e=>S.day>=atOf(e)&&!S.done[e.id]).sort((a,b)=>atOf(b)-atOf(a))[0];if(cal&&list.length<3)list.push(cal);
   let pool=EV.filter(e=>(e.kind==="arc"||e.kind==="pool")&&e.cond()&&!list.includes(e));
   while(list.length<3&&pool.length){
     const tot=pool.reduce((a,e)=>a+e.w(),0);let r=Math.random()*tot;
@@ -1225,28 +1320,28 @@ function conclude(e,r){
 }
 function showSleep(){
   const box=$("choices");box.className="choices";box.innerHTML="";
-  const a=document.createElement("button");a.id="sleep1";a.innerHTML=icon("sleep")+`<span>${S.day>=364?"Sleep (last night)":"Sleep until tomorrow"}</span>`;a.onclick=()=>sleep(1);
+  const a=document.createElement("button");a.id="sleep1";a.innerHTML=icon("sleep")+`<span>${S.day>=total()-1?"Sleep (last night)":"Sleep until tomorrow"}</span>`;a.onclick=()=>sleep(1);
   const b=document.createElement("button");b.id="sleepMore";b.innerHTML=icon("nap")+"<span>Sleep until something happens</span>";b.onclick=()=>sleep(skipLen());
-  box.append(a);if(S.day<364&&!(S.method&&STORY[S.method]&&STORY[S.method][S.day+1]))box.append(b);
+  box.append(a);if(S.day<total()-1&&!(S.method&&STORY[S.method]&&STORY[S.method][S.day+1]))box.append(b);
 }
 function skipLen(){
-  const nextCal=CAL.filter(c=>!S.done[c.id]&&c.at>S.day).map(c=>c.at).sort((a,b)=>a-b)[0]||365;
+  const nextCal=CAL.filter(c=>!S.done[c.id]&&atOf(c)>S.day).map(atOf).sort((a,b)=>a-b)[0]||total();
   return Math.max(1,Math.min(nextCal-S.day,rnd(4,9)));
 }
 function sleep(n){
   S.pinkNight=false;
   if(n>1){hungry(-4*(n-1));if(S.hunger<12)S.hunger=12;S.flies+=S.home*(n-1);scare(-(n-1))}
-  S.day=Math.min(365,S.day+n);
-  if(S.day>=365)return finish();
+  S.day=Math.min(total(),S.day+n);
+  if(S.day>=total())return finish();
   flash();startNight();window.scrollTo({top:0,behavior:"smooth"});
 }
 function flash(){const f=$("flash");f.classList.remove("go");void f.offsetWidth;f.classList.add("go")}
 
-const BADGES={hat:"Top hat",socks:"Eight tiny socks",clip:"Nose clip",lantern:"Lantern",jar:"Gerald in a jar",crown:"Fly King's crown",ribbon:"Gold web ribbon",mayor:"Mayor's best friend",starfish:"Starfish Trick",feather:"Raven feather",glow:"Purple glow",belly:"Never-hungry belly",friendly:"Friends with everyone",ticket:"One-way ticket",whistle:"Silver whistle",cap:"Conductor's hat"};
+const BADGES={hat:"Top hat",socks:"Eight tiny socks",clip:"Nose clip",lantern:"Lantern",jar:"Gerald in a jar",crown:"Fly King's crown",ribbon:"Gold web ribbon",mayor:"Mayor's best friend",starfish:"Starfish Trick",feather:"Raven feather",glow:"Purple glow",belly:"Never-hungry belly",friendly:"Friends with everyone",ticket:"One-way ticket",whistle:"Silver whistle",cap:"Conductor's hat",cape:"Royal cape"};
 const BADGE_METHOD={starfish:"raven",feather:"raven",glow:"julia",belly:"julia",friendly:"julia",ticket:"train",whistle:"train",cap:"train"};
 function mates(){const m=[];if(S.zed)m.push(S.zed>=4?"Mayor Zed":"Zed the zombie");if(S.egg===1||S.egg===2)m.push("A mysterious egg");if(S.egg>=3)m.push(S.snakeNames);if(S.pip)m.push("Pip");if(S.gerald===1||S.gerald===3)m.push("Gerald");if(S.ravenName)m.push(S.ravenName+" the raven");if(S.mothName)m.push(S.mothName+" the moth");return m}
 function render(){
-  $("dDay").textContent=S.day;$("dFlies").textContent=S.flies;$("dHeads").textContent=S.heads;$("dFriends").textContent=S.pals.length;
+  $("dDay").textContent=S.day;$("dTot").textContent=total();$("dFlies").textContent=S.flies;$("dHeads").textContent=S.heads;$("dFriends").textContent=S.pals.length;
   $("sDay").textContent="Night "+S.day;
   $("hungerBar").style.width=S.hunger+"%";$("hungerTxt").textContent=S.hunger>70?"Stuffed":S.hunger>40?"Okay":S.hunger>15?"Hungry":"Starving";
   $("stinkBar").style.width=S.stink+"%";$("stinkTxt").textContent=S.stink>85?"Awful":S.stink>60?"Bad":S.stink>30?"Gross":"Okay";
@@ -1269,7 +1364,7 @@ function human(x,y,o={}){return `<g transform="translate(${x} ${y})"><g class="$
   <circle cx="-5" cy="-28" r="1.8" fill="#1a0507"/><circle cx="5" cy="-28" r="1.8" fill="#1a0507"/>
   <path d="M-5 -21 Q0 -16 5 -21" stroke="#1a0507" stroke-width="1.6" fill="none"/></g></g>`}
 function finish(){
-  stopMini();S.day=365;clearSave();
+  stopMini();S.day=total();clearSave();
   countdown(showEnd,["Your legs are tingling.","They're... disappearing.","Close your eyes.","3","2","1"]);
 }
 function showEnd(){
@@ -1277,7 +1372,7 @@ function showEnd(){
   S.weather="calm";
   $("endStage").innerHTML=stage(`<g opacity=".3">${home()}${pal(268,168,{flip:true,wave:true,scale:.85})}${S.zed?zedFig(320):""}</g>`+`<g class="jump">${human(160,168,{wave:true})}</g>`+bubble(184,70,"TWO legs!!",86),"You, human again, waving goodbye to the fading Spider Verse",true,{fear:0});
   const t=new Date(S.shiftedAt+1000);
-  $("clock").textContent=`It's ${t.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})}. Exactly 1 second after you shifted. You were gone for 365 nights. Was it a dream? You check your pocket. There's one cold fly in it.`;
+  $("clock").textContent=`It's ${t.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})}. Exactly 1 second after you shifted. You were gone for ${total()} nights. Was it a dream? You check your pocket. There's one cold fly in it.`;
   const got=Object.keys(S.items).map(k=>BADGES[k]).filter(Boolean),m=mates();
   $("summary").innerHTML=`<p style="margin:0 0 8px"><b>Your year in the Spider Verse</b></p>
   <ul style="margin:0;padding-left:1.2em">
@@ -1285,6 +1380,7 @@ function showEnd(){
   <li>Ate a lot of cold flies (${S.flies} still in your pocket)</li>
   <li>Bonked ${S.heads} snake heads</li>
   <li>Spider pals: ${S.pals.length?S.pals.join(", "):"none yet"}</li>
+  ${S.extra?`<li>The Spider King kept you ${S.extra} extra nights</li>`:""}
   <li>Lived with: ${m.length?m.join(", "):"nobody, just you and the smell"}</li>
   <li>Brought home: ${got.length?got.join(", "):"nothing but the smell"}</li>
   <li>How scared you ended up: ${S.fear>60?"still very":S.fear>30?"a little":"not at all"}</li>
@@ -1367,7 +1463,7 @@ function shift(){
 }
 $("introStage").innerHTML=stage(potty(20,0)+stink(26,118)+`<ellipse cx="300" cy="184" rx="40" ry="8" fill="#4f7d2a"/>`+snakeNeck(290,140,290,120,"sway",0).replace(/250 182/,"300 182")+`<g class="creep">${shadowSp(200,168)}</g>`+sp(110,168,{mood:"scared"})+eyePair(160,60,"#ffd23f",1,"lurk",1),"A spider-person in the red-sky world, and something behind them");
 const saved=loadSave();
-if(saved&&saved.day>1&&saved.day<365){$("continueBtn").hidden=false;$("continueBtn").textContent=`Continue (Night ${saved.day})`;$("mHead").textContent="Or start a new shift. Choose your method";
+if(saved&&saved.day>1&&saved.day<365+(saved.extra||0)){$("continueBtn").hidden=false;$("continueBtn").textContent=`Continue (Night ${saved.day})`;$("mHead").textContent="Or start a new shift. Choose your method";
   $("continueBtn").onclick=()=>{reset();S=Object.assign(S,saved);$("intro").hidden=true;$("game").hidden=false;if(chapterFor(S.day))return runChapter(S.day);if(!S.tonight||!S.tonight.length)S.tonight=buildTonight();showTonight()}}
 $("noBtn").onclick=()=>{$("confirm").hidden=true;$("methods").hidden=false};
 $("yesBtn").onclick=shift;
