@@ -1,0 +1,4 @@
+/* Bundled so the app works offline. Both families are under the SIL Open Font License (see OFL-Gluten.txt and OFL-Andika.txt). Latin subset. */
+@font-face{font-family:"Gluten";font-style:normal;font-weight:600 800;font-display:swap;src:url(gluten.woff2) format("woff2")}
+@font-face{font-family:"Andika";font-style:normal;font-weight:400;font-display:swap;src:url(andika-400.woff2) format("woff2")}
+@font-face{font-family:"Andika";font-style:normal;font-weight:700;font-display:swap;src:url(andika-700.woff2) format("woff2")}

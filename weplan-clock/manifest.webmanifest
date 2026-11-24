@@ -1,7 +1,7 @@
 {
-  "name": "Plan Clock: Visual Session Schedule",
-  "short_name": "Plan Clock",
-  "description": "Plan therapy session activities together, with pictures, and see each one as a color wedge on a real analog clock.",
+  "name": "WePlan Clock: Visual Schedule & Planner",
+  "short_name": "WePlan Clock",
+  "description": "Co-create visual schedules with kids: pictures, color clock wedges and check-ins, for an hour, a day or a week.",
   "id": "./",
   "start_url": "./",
   "scope": "./",

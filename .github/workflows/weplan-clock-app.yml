@@ -1,0 +1,53 @@
+# Checks that the WePlan Clock iPhone/iPad and Android apps still build whenever the app changes.
+# These are unsigned test builds; signed store builds run on Codemagic (see codemagic.yaml).
+name: WePlan Clock app check
+
+on:
+  push:
+    paths:
+      - 'weplan-clock/**'
+      - 'apps/weplan-clock/**'
+      - '.github/workflows/weplan-clock-app.yml'
+  workflow_dispatch:
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/weplan-clock
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm run build && npx cap sync android
+      - run: cd android && ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: weplan-clock-android-debug
+          path: apps/weplan-clock/android/app/build/outputs/apk/debug/*.apk
+
+  ios:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: apps/weplan-clock
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run build && npx cap sync ios
+      - run: |
+          cd ios/App
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -40
+          test ${PIPESTATUS[0]} -eq 0
