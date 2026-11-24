@@ -11,6 +11,7 @@
   },
   "plugins": {
     "LocalNotifications": {
+      "smallIcon": "ic_stat_weplan",
       "iconColor": "#2E5AAE"
     }
   }

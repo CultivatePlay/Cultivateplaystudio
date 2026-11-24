@@ -16,7 +16,7 @@
 <meta name="apple-mobile-web-app-title" content="WePlan Clock">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="fonts/fonts.css">
-<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<style>:root{color-scheme:light;padding-top:max(env(safe-area-inset-top,0px),var(--safe-area-inset-top,0px));padding-bottom:max(env(safe-area-inset-bottom,0px),var(--safe-area-inset-bottom,0px))}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <style>
 /* Layout: the studio's bulletin board. Planning is a taped sheet with a live preview clock; the run screen is a big clock beside "now" and "next" cards; the About page is a taped reading sheet. */
 :root{
@@ -53,7 +53,7 @@ button,input,select{font:inherit}
 button{cursor:pointer;color:inherit}
 :focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 [hidden]{display:none!important}
-.wrap{max-width:1240px;margin:0 auto;padding-block:14px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1240px;margin:0 auto;padding-block:14px 28px;padding-left:max(16px,max(env(safe-area-inset-left,0px),var(--safe-area-inset-left,0px)));padding-right:max(16px,max(env(safe-area-inset-right,0px),var(--safe-area-inset-right,0px)))}
 
 /* ---- top bar ---- */
 .top{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;margin-bottom:18px}
@@ -270,6 +270,16 @@ dialog::backdrop{background:rgba(8,16,40,.55)}
   .bigclock{width:min(100%,520px)}
 }
 @media (max-width:520px){
+  /* phone header: brand, child and theme on one row, the two pages as full-width tabs below */
+  .top{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"brand prof" "tabs theme";gap:8px;margin-bottom:14px}
+  .brand{grid-area:brand;min-width:0}
+  .brand img{width:34px;height:34px}
+  .brand b{font-size:1.35rem}
+  .profilechip{grid-area:prof;max-width:10em}
+  .tabs{grid-area:tabs;flex-wrap:nowrap}
+  .tab{flex:1;min-height:44px}
+  .tab .tx,#themeBtn .tx{display:none}
+  #themeBtn{grid-area:theme;padding:4px 12px;min-height:44px}
   .item{grid-template-columns:34px 60px minmax(0,1fr)}
   .grip{width:34px}
   .picbtn{width:60px;height:60px}
@@ -290,9 +300,9 @@ dialog::backdrop{background:rgba(8,16,40,.55)}
     <button class="btn sm profilechip" id="profileBtn" type="button" aria-label="Choose who is planning">👤 <span id="profileName">My plans</span></button>
     <nav class="tabs" aria-label="Pages">
       <button class="tab" type="button" id="tabMain" aria-current="page">Schedule</button>
-      <button class="tab" type="button" id="tabAbout">About co-creating</button>
+      <button class="tab" type="button" id="tabAbout">About<span class="tx"> co-creating</span></button>
     </nav>
-    <button class="btn sm ghost" id="themeBtn" type="button" aria-label="Switch light or dark">◐ Theme</button>
+    <button class="btn sm ghost" id="themeBtn" type="button" aria-label="Switch light or dark"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" style="flex:none"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 2a8 8 0 0 1 0 16Z" fill="currentColor"/></svg> <span class="tx">Theme</span></button>
   </header>
 
   <!-- ============ PLANNER ============ -->
@@ -1876,6 +1886,21 @@ $('themeBtn').addEventListener('click', () => {
   const cur = document.documentElement.dataset.theme;
   const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
   const t = dark ? 'light' : 'dark'; pref.set('theme', t); applyTheme(t);
+});
+
+/* ---------- Android back button: close what's open, step back, and never quit mid-session ---------- */
+const AppPlugin = plug('App');
+if (AppPlugin) AppPlugin.addListener('backButton', () => {
+  const open = [...document.querySelectorAll('dialog[open]')].pop();
+  if (open) {
+    // Same as pressing Esc: each dialog's own cancel handling runs (a time-up check-in counts as "ready").
+    const ev = new Event('cancel', { cancelable: true });
+    open.dispatchEvent(ev);
+    if (open.open && !ev.defaultPrevented) open.close();
+    return;
+  }
+  if (!$('aboutView').hidden) { showMain(); return; }
+  AppPlugin.minimizeApp();
 });
 
 /* ---------- boot ---------- */
