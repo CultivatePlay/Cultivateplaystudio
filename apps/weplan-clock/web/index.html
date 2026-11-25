@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- WePlan Clock app (iPhone, iPad, Android). Capacitor copies this folder into the native projects; see apps/weplan-clock/README.md.
+     Opened in a browser it still runs, with a "preview" Plus switch, which is handy for testing and screenshots. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>WePlan Clock</title>
+<meta name="description" content="WePlan Clock: co-create visual schedules with kids. Plan activities together with pictures, see each one as a color wedge on a real analog clock, and check in as you go.">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>:root{color-scheme:light;padding-top:max(env(safe-area-inset-top,0px),var(--safe-area-inset-top,0px));padding-bottom:max(env(safe-area-inset-bottom,0px),var(--safe-area-inset-bottom,0px))}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<style>
+/* Layout: the studio's bulletin board. Planning is a taped sheet with a live preview clock; the run screen is a big clock beside "now" and "next" cards; the About page is a taped reading sheet. */
+:root{
+  --board:#2E5AAE; --board-ink:#FFFFFF;
+  --sheet:#FFFFFF; --ink:#1D2333; --muted:#5D667A; --line:#D7DDE8; --label:#FFFDF4;
+  --tape:rgba(238,226,178,.9); --accent:#E2483C; --accent-ink:#FFFFFF; --gold:#F2B705;
+  --face:#FFFFFF; --tick:#1D2333; --elapsed:rgba(255,255,255,.72); --hand:#1D2333; --second:#E2483C;
+  --sticky:#FFE680; --sticky-ink:#3A3110; --good:#1E8550; --good-bg:#DDF3E6; --bad:#B42318; --bad-bg:#FCE3DF;
+  --shadow:rgba(8,22,58,.32);
+  --font-display:"Gluten","Chalkboard SE","Comic Sans MS",cursive;
+  --font-body:"Andika","Trebuchet MS",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --board:#1C2925; --board-ink:#E6EEE9;
+  --sheet:#283230; --ink:#ECF0EE; --muted:#A3AFAA; --line:#3B4744; --label:#313C39;
+  --tape:rgba(214,202,152,.34); --accent:#FF7A66; --accent-ink:#2A0E09; --gold:#F5C542;
+  --face:#F4F1E8; --tick:#1D2333; --elapsed:rgba(244,241,232,.74); --hand:#1D2333; --second:#D63B2F;
+  --sticky:#4F4520; --sticky-ink:#FFF3C4; --good:#5BD495; --good-bg:#173A29; --bad:#FF9C8F; --bad-bg:#4A1F1A;
+  --shadow:rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --board:#1C2925; --board-ink:#E6EEE9;
+  --sheet:#283230; --ink:#ECF0EE; --muted:#A3AFAA; --line:#3B4744; --label:#313C39;
+  --tape:rgba(214,202,152,.34); --accent:#FF7A66; --accent-ink:#2A0E09; --gold:#F5C542;
+  --face:#F4F1E8; --tick:#1D2333; --elapsed:rgba(244,241,232,.74); --hand:#1D2333; --second:#D63B2F;
+  --sticky:#4F4520; --sticky-ink:#FFF3C4; --good:#5BD495; --good-bg:#173A29; --bad:#FF9C8F; --bad-bg:#4A1F1A;
+  --shadow:rgba(0,0,0,.5); color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;min-height:100dvh;background:var(--board);color:var(--board-ink);font:17px/1.4 var(--font-body)}
+h1,h2,h3{font-family:var(--font-display);font-weight:800;margin:0;line-height:1.08;text-wrap:balance}
+p{margin:0}
+button,input,select{font:inherit}
+button{cursor:pointer;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+[hidden]{display:none!important}
+.wrap{max-width:1240px;margin:0 auto;padding-block:14px 28px;padding-left:max(16px,max(env(safe-area-inset-left,0px),var(--safe-area-inset-left,0px)));padding-right:max(16px,max(env(safe-area-inset-right,0px),var(--safe-area-inset-right,0px)))}
+
+/* ---- top bar ---- */
+.top{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+.brand img{width:40px;height:40px;border-radius:11px}
+.brand b{font-family:var(--font-display);font-size:1.6rem;font-weight:800;rotate:-1.5deg;white-space:nowrap}
+.brand .we{color:var(--gold)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{border:2px solid currentColor;background:transparent;color:var(--board-ink);border-radius:12px;min-height:44px;padding:4px 14px;font-weight:700}
+.tab[aria-current="page"]{background:var(--sheet);color:var(--ink);border-color:var(--sheet)}
+
+/* ---- shared bits ---- */
+.btn{border:2px solid var(--ink);background:var(--sheet);color:var(--ink);border-radius:12px;padding:8px 16px;min-height:48px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 0 var(--ink);transition:translate .08s,box-shadow .08s;white-space:nowrap}
+.btn:active{translate:0 2px;box-shadow:0 1px 0 var(--ink)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.go{background:var(--good);color:#fff}
+.btn.ghost{background:transparent;color:inherit;border-color:currentColor;box-shadow:none}
+.btn.sm{min-height:40px;padding:4px 12px;font-size:.92rem}
+.btn.icon{width:44px;min-height:44px;padding:0;font-size:1.2rem}
+.sheet{background:var(--sheet);color:var(--ink);border-radius:3px;position:relative;box-shadow:0 1px 0 rgba(0,0,0,.05),0 14px 22px -14px var(--shadow)}
+.sheet.tape::before{content:"";position:absolute;top:-11px;left:50%;width:92px;height:22px;translate:-50% 0;rotate:-2.5deg;background:var(--tape);
+  clip-path:polygon(3% 0,97% 0,100% 22%,96% 48%,100% 74%,97% 100%,3% 100%,0 76%,4% 50%,0 24%);pointer-events:none;z-index:1}
+.label{font-size:.74rem;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--muted)}
+.note{font-size:.88rem;color:var(--muted)}
+input[type=text],input[type=time],input[type=number],select{background:var(--sheet);color:var(--ink);border:2px solid var(--ink);border-radius:10px;padding:8px 12px;min-height:46px;min-width:0}
+input:disabled{opacity:.55}
+.lenwrap{display:flex;align-items:center;gap:8px;font-weight:700}
+.lenwrap input{width:5.5em;font-weight:700;font-variant-numeric:tabular-nums}
+.lenhint{font-size:.75rem;color:var(--muted)}
+.toggle{display:flex;align-items:center;gap:8px;font-weight:700;min-height:44px}
+.toggle input{width:22px;height:22px;accent-color:var(--accent)}
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:12px;overflow:hidden;background:var(--sheet);box-shadow:0 3px 0 var(--ink)}
+.seg button{border:0;background:var(--sheet);color:var(--ink);padding:6px 16px;min-height:46px;font-weight:700;font-family:var(--font-display);font-size:1.08rem}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
+.seg button:disabled{opacity:.5;cursor:default}
+
+/* ---- planner ---- */
+.plan{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:28px;align-items:start}
+.modebar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:24px}
+.modenote{font-size:.92rem;opacity:.9}
+.lock{font-size:.78em;margin-left:2px}
+.linkbtn{background:none;border:0;padding:0;color:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.banner{margin:22px 20px 0;padding:10px 14px;border-radius:12px;background:var(--sticky);color:var(--sticky-ink);font-weight:700}
+.planhead{display:flex;flex-wrap:wrap;gap:10px;align-items:end;padding:22px 20px 16px;border-bottom:2px dashed var(--line)}
+/* my week */
+.weekgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:28px;align-items:start}
+.week{padding:24px 20px 20px;display:flex;flex-direction:column;gap:12px}
+.week h2{font-size:1.6rem}
+.days{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.day{display:grid;grid-template-columns:8em minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--label);border:2px solid var(--line)}
+.day.today{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold)}
+.day b{font-family:var(--font-display);font-size:1.15rem}
+.day small{display:block;font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;min-height:1em}
+.day select{width:100%}
+.pluslist{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.price{font-family:var(--font-display);font-weight:800;font-size:2.2rem;line-height:1}
+.profilechip{background:transparent;color:var(--board-ink);border-color:currentColor;box-shadow:none;max-width:15em}
+.profilechip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.proflist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.proflist li{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:12px;border:2px solid var(--line);background:var(--label)}
+.proflist li.cur{border-color:var(--gold)}
+.proflist .pick{flex:1;min-width:0;text-align:left;border:0;background:transparent;color:var(--ink);font-family:var(--font-display);font-weight:800;font-size:1.15rem;min-height:44px;padding:4px 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.voicebtn{min-height:40px}
+#sumText{width:100%;min-height:280px;font:15px/1.45 var(--font-body);background:var(--label);color:var(--ink);border:2px solid var(--line);border-radius:10px;padding:10px 12px;resize:vertical}
+.chip:disabled{opacity:.4;cursor:default}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.item.gaprow{display:block;border-style:dashed;border-left:2px dashed var(--line);background:transparent;padding:8px 14px}
+.gapinfo{margin:0;color:var(--muted);font-weight:700}
+.preview-note{background:var(--sticky);color:var(--sticky-ink);border-radius:10px;padding:8px 12px;font-size:.85rem}
+.planhead .field{display:flex;flex-direction:column;gap:4px;flex:1 1 220px;min-width:0}
+.planhead #planName{width:100%;font-family:var(--font-display);font-size:1.3rem;font-weight:800}
+.planhead .small{flex:0 0 auto}
+.items{list-style:none;margin:0;padding:10px 12px;display:flex;flex-direction:column;gap:10px}
+.item{display:grid;grid-template-columns:40px 72px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 10px 10px 6px;border-radius:14px;border:2px solid var(--line);background:var(--label);border-left:12px solid var(--c);transition:box-shadow .15s}
+.item.dragging{box-shadow:0 12px 24px -8px var(--shadow);border-color:var(--ink);scale:1.02;z-index:2;position:relative}
+.item.isdone{opacity:.6}
+.grip{align-self:stretch;width:40px;border:0;border-radius:10px;background:transparent;color:var(--muted);font-size:1.4rem;letter-spacing:-.3em;line-height:1;padding:0 .3em 0 0;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.grip:hover{background:var(--line)}
+.item.dragging .grip{cursor:grabbing}
+.picbtn{width:72px;height:72px;border-radius:14px;border:3px dashed var(--muted);background:var(--sheet);display:grid;place-items:center;padding:0;overflow:hidden;color:var(--muted);font-size:.75rem;font-weight:700;line-height:1.1;text-align:center}
+.picbtn.has{border:3px solid var(--c);background:#fff}
+.picbtn img{width:100%;height:100%;object-fit:cover}
+.picbtn .emo{font-size:2.6rem;line-height:1}
+.mid{display:flex;flex-direction:column;gap:8px;min-width:0}
+.mid input{width:100%;font-weight:700}
+.mins{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.step{display:inline-flex;align-items:center;border:2px solid var(--ink);border-radius:12px;overflow:hidden;background:var(--sheet)}
+.step button{border:0;background:transparent;width:40px;height:40px;font-size:1.3rem;font-weight:700;color:var(--ink)}
+.step input[type=number]{width:3.4em;border:0;border-radius:0;background:transparent;color:var(--ink);text-align:right;font-weight:700;font-variant-numeric:tabular-nums;min-height:40px;padding:0 2px;-moz-appearance:textfield;appearance:textfield}
+.step input[type=number]::-webkit-inner-spin-button,.step input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.step input[type=number]:focus-visible{outline:3px solid var(--gold);outline-offset:-3px}
+.step .unit{font-weight:700;padding-right:4px;color:var(--muted)}
+.step output{min-width:6.5ch;text-align:center;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.swatches{display:flex;gap:5px;flex-wrap:wrap}
+.sw{width:26px;height:26px;border-radius:50%;border:2px solid var(--sheet);outline:2px solid transparent;background:var(--c);padding:0}
+.sw[aria-pressed="true"]{outline:3px solid var(--ink)}
+.del{align-self:start}
+.donetag{font-size:.78rem;font-weight:700;color:var(--good)}
+.addrow{display:flex;flex-wrap:wrap;gap:8px;padding:6px 12px 14px;align-items:center}
+.quick{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 16px}
+.chip{border:2px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:999px;padding:4px 12px 4px 8px;min-height:38px;font-weight:700;font-size:.92rem;display:inline-flex;align-items:center;gap:6px}
+.chip span{font-size:1.25rem}
+.total{margin:0 12px 14px;padding:10px 14px;border-radius:12px;background:var(--good-bg);color:var(--good);font-weight:700;display:flex;justify-content:space-between;gap:4px 10px;flex-wrap:wrap}
+.total.over{background:var(--bad-bg);color:var(--bad)}
+.side{display:flex;flex-direction:column;gap:22px;position:sticky;top:14px}
+.preview{padding:22px 18px 18px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.preview .clockbox{width:min(100%,380px)}
+.startbox{display:flex;flex-direction:column;gap:10px;width:100%}
+.startrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.startrow .btn{flex:1 1 auto}
+.bigstart{font-size:1.2rem;min-height:56px}
+.saved{padding:20px 18px 16px;display:flex;flex-direction:column;gap:10px}
+.saved ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.saved li{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;border-radius:10px;background:var(--label);border:2px solid var(--line)}
+.saved li b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.saved .kind{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.saved .row{display:flex;gap:8px;flex-wrap:wrap}
+.privacy{font-size:.85rem;opacity:.85;margin-top:14px;max-width:70ch}
+
+/* ---- clock (shared by preview and run) ---- */
+.clock{display:block;width:100%;height:auto;overflow:visible}
+.clock .face{fill:var(--face);stroke:var(--tick);stroke-width:2.5}
+.clock .tk{stroke:var(--tick);stroke-linecap:round}
+.clock .num{fill:var(--tick);font-family:var(--font-display);font-weight:800;font-size:13px;text-anchor:middle;dominant-baseline:central}
+.clock .wedge{stroke:var(--face);stroke-width:1.2}
+.clock .elapsed{fill:var(--elapsed)}
+.clock .picbg{fill:#fff;stroke-width:2}
+.clock .hand{stroke:var(--hand);stroke-linecap:round}
+.clock .hand.soft{opacity:.45}
+.clock .sec{stroke:var(--second);stroke-linecap:round}
+.clock .cap{fill:var(--hand)}
+.clock .startmark{stroke:var(--tick);stroke-width:2.5;stroke-dasharray:3 3}
+
+/* ---- run screen ---- */
+.run{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,1fr);gap:24px;align-items:center;min-height:calc(100dvh - 120px)}
+.bigclock{width:min(100%,calc(100dvh - 150px));margin-inline:auto}
+.digital{text-align:center;font-family:var(--font-display);font-weight:800;font-size:1.6rem;margin-top:6px;font-variant-numeric:tabular-nums}
+.cards{display:flex;flex-direction:column;gap:18px;min-width:0}
+.now{padding:24px 20px 20px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;border-left:16px solid var(--c,var(--line))}
+.now .pic{width:clamp(110px,16vw,170px);aspect-ratio:1;max-width:100%;border-radius:20px;border:4px solid var(--c,var(--line));display:grid;place-items:center;overflow:hidden;background:#fff}
+.now .pic img{width:100%;height:100%;object-fit:cover}
+.now .pic .emo{font-size:clamp(4rem,9vw,6rem);line-height:1}
+.now h2{font-size:clamp(1.9rem,4vw,2.8rem)}
+.left{font-size:1.3rem;font-weight:700;margin-top:6px}
+.bar{height:16px;border-radius:999px;background:var(--line);overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:var(--c,var(--accent));border-radius:inherit;transition:width .5s linear}
+.next{padding:14px 16px;display:flex;gap:12px;align-items:center;border-left:10px solid var(--c,var(--line))}
+.next .pic{width:64px;height:64px;border-radius:14px;border:3px solid var(--c,var(--line));display:grid;place-items:center;overflow:hidden;background:#fff;flex:none}
+.next .pic img{width:100%;height:100%;object-fit:cover}
+.next .pic .emo{font-size:2.3rem}
+.next b{font-family:var(--font-display);font-size:1.4rem;display:block}
+.next.warn{animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px var(--gold),0 14px 22px -14px var(--shadow)}}
+.strip{display:flex;gap:8px;flex-wrap:wrap}
+.stripitem{display:flex;flex-direction:column;align-items:center;gap:3px;width:78px;padding:6px 4px;border-radius:12px;background:var(--sheet);color:var(--ink);border-bottom:6px solid var(--c);position:relative;font-size:.78rem;font-weight:700;text-align:center;line-height:1.1}
+.stripitem .pic{width:52px;height:52px;border-radius:10px;overflow:hidden;display:grid;place-items:center;background:#fff}
+.stripitem .pic img{width:100%;height:100%;object-fit:cover}
+.stripitem .pic .emo{font-size:2rem}
+.stripitem.done{opacity:.5}
+.stripitem.done::after{content:"✓";position:absolute;top:2px;right:6px;font-size:1.5rem;color:var(--good);font-weight:800}
+.stripitem.cur{outline:4px solid var(--gold);outline-offset:2px}
+.stripitem span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+.runbar{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;margin-top:4px}
+.runbar .toggle{color:var(--board-ink);font-size:.92rem}
+.flash{position:fixed;inset:0;pointer-events:none;background:var(--c,var(--gold));opacity:0;z-index:20}
+.flash.on{animation:flash 1.6s ease-out}
+@keyframes flash{15%{opacity:.45}100%{opacity:0}}
+.celebrate{text-align:center;padding:30px 20px;grid-column:1/-1}
+.celebrate h2{font-size:clamp(2.2rem,6vw,3.4rem)}
+.celebrate .big{font-size:4.5rem}
+
+/* ---- about ---- */
+.about{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.about .hero{padding:30px 28px 26px;display:flex;flex-direction:column;gap:12px}
+.about .hero h1{font-size:clamp(2rem,5vw,3rem)}
+.about .lede{font-size:1.15rem;max-width:62ch}
+.about section{padding:26px 28px 24px;display:flex;flex-direction:column;gap:12px}
+.about section h2{font-size:1.65rem}
+.about section p,.about li{max-width:66ch}
+.about ul,.about ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:8px}
+.about .say{background:var(--label);border:2px solid var(--line);border-left:8px solid var(--gold);border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:6px}
+.about .say p{font-style:italic}
+.about .pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.about .yes,.about .no{border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:6px}
+.about .yes{background:var(--good-bg);color:var(--ink)}
+.about .no{background:var(--bad-bg);color:var(--ink)}
+.about .yes b{color:var(--good)} .about .no b{color:var(--bad)}
+.about .cta{display:flex;justify-content:center;padding-bottom:10px}
+
+/* ---- dialogs ---- */
+dialog{border:0;padding:0;background:transparent;max-width:min(560px,calc(100vw - 32px));width:100%;color:var(--ink)}
+dialog::backdrop{background:rgba(8,16,40,.55)}
+.dlg{padding:24px 20px 18px;display:flex;flex-direction:column;gap:14px;max-height:calc(100dvh - 48px);overflow:auto}
+.dlg h3{font-size:1.5rem}
+.dlgrow{display:flex;gap:8px;flex-wrap:wrap}
+.picgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.picgrid button{aspect-ratio:1;border:2px solid var(--line);border-radius:12px;background:#fff;padding:0;overflow:hidden;display:grid;place-items:center;font-size:2.2rem;position:relative}
+.picgrid img{width:100%;height:100%;object-fit:cover}
+.picgrid .x{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:.8rem;display:grid;place-items:center;line-height:1}
+.dlgfoot{display:flex;justify-content:flex-end;gap:8px}
+#askInput{width:100%}
+.cigrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.cigrid button{border:3px solid var(--line);background:var(--label);color:var(--ink);border-radius:16px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:var(--font-display);font-weight:800;font-size:1.15rem;line-height:1.1;text-align:center}
+.cigrid button span{font-size:2.6rem;line-height:1}
+.cigrid button:disabled{opacity:.4;cursor:default}
+
+@media (max-width:860px){
+  .plan{grid-template-columns:1fr}
+  .side{position:static;order:-1}
+  .weekgrid{grid-template-columns:1fr}
+  .run{grid-template-columns:1fr;min-height:0}
+  .bigclock{width:min(100%,520px)}
+}
+@media (max-width:520px){
+  /* phone header: brand, child and theme on one row, the two pages as full-width tabs below */
+  .top{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"brand prof" "tabs theme";gap:8px;margin-bottom:14px}
+  .brand{grid-area:brand;min-width:0}
+  .brand img{width:34px;height:34px}
+  .brand b{font-size:1.35rem}
+  .profilechip{grid-area:prof;max-width:10em}
+  .tabs{grid-area:tabs;flex-wrap:nowrap}
+  .tab{flex:1;min-height:44px}
+  .tab .tx,#themeBtn .tx{display:none}
+  #themeBtn{grid-area:theme;padding:4px 12px;min-height:44px}
+  .item{grid-template-columns:34px 60px minmax(0,1fr)}
+  .grip{width:34px}
+  .picbtn{width:60px;height:60px}
+  .del{grid-column:1/-1;justify-self:end}
+  .day{grid-template-columns:minmax(0,1fr) auto}
+  .day select{grid-column:1/-1;grid-row:2}
+  .now{grid-template-columns:1fr;text-align:center;justify-items:center}
+  .about .hero,.about section{padding-inline:18px}
+}
+@media (prefers-reduced-motion:reduce){.btn,.bar i,.item{transition:none}.next.warn{animation:none;outline:4px solid var(--gold)}.flash.on{animation:none}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><img src="icons/icon-192.png" alt=""><b><span class="we">We</span>Plan Clock</b></div>
+    <button class="btn sm profilechip" id="profileBtn" type="button" aria-label="Choose who is planning">👤 <span id="profileName">My plans</span></button>
+    <nav class="tabs" aria-label="Pages">
+      <button class="tab" type="button" id="tabMain" aria-current="page">Schedule</button>
+      <button class="tab" type="button" id="tabAbout">About<span class="tx"> co-creating</span></button>
+    </nav>
+    <button class="btn sm ghost" id="themeBtn" type="button" aria-label="Switch light or dark"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" style="flex:none"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 2a8 8 0 0 1 0 16Z" fill="currentColor"/></svg> <span class="tx">Theme</span></button>
+  </header>
+
+  <!-- ============ PLANNER ============ -->
+  <section id="planView">
+    <div class="modebar">
+      <div class="seg" role="group" aria-label="Kind of plan">
+        <button type="button" id="modeSession" aria-pressed="true">My hour</button>
+        <button type="button" id="modeDay" aria-pressed="false">My day</button>
+        <button type="button" id="modeWeek" aria-pressed="false">My week</button>
+      </div>
+      <span class="modenote" id="modeNote"></span>
+    </div>
+    <div class="plan" id="planGrid">
+      <div class="sheet tape">
+        <p class="banner" id="editBanner" hidden>The session is still running. Change what you agreed on, then tap “Back to the clock”.</p>
+        <div class="planhead">
+          <label class="field"><span class="label">Plan name</span>
+            <input type="text" id="planName" placeholder="Sam's Tuesday session" autocomplete="off"></label>
+          <label class="field small" id="lenField"><span class="label">Session length</span>
+            <span class="lenwrap"><input type="number" id="sessLen" min="5" max="60" step="1" inputmode="numeric" aria-describedby="lenHint"><span>minutes</span></span>
+            <span class="lenhint" id="lenHint">5 to 60</span></label>
+          <label class="field small" id="dayStartField" hidden><span class="label">Day starts</span><input type="time" id="dayStart" step="300"></label>
+          <label class="field small" id="dayEndField" hidden><span class="label">Day ends</span><input type="time" id="dayEnd" step="300"></label>
+        </div>
+        <ol class="items" id="items"></ol>
+        <div class="addrow">
+          <button class="btn primary" id="addBtn" type="button">＋ Add activity</button>
+          <button class="btn" id="splitBtn" type="button">⚖ Split time evenly</button>
+          <span class="note">Drag ⋮⋮ to change the order. Tap the square to add a picture.</span>
+        </div>
+        <div class="quick" id="quick" aria-label="Quick add"></div>
+        <div class="total" id="total"></div>
+      </div>
+
+      <aside class="side">
+        <div class="sheet tape preview">
+          <h2 style="font-size:1.5rem">Our clock</h2>
+          <div class="clockbox"><svg class="clock" id="previewClock" viewBox="-110 -110 220 220" role="img" aria-label="Preview of the plan on the clock"></svg></div>
+          <p class="note" id="previewNote" style="text-align:center"></p>
+          <div class="startbox" id="sessStartBox">
+            <button class="btn go bigstart" id="startNow" type="button">▶ Start now</button>
+            <div class="startrow">
+              <label class="label" for="startAt" style="flex:0 0 auto">or start at</label>
+              <input type="time" id="startAt" step="60" style="flex:1 1 120px">
+              <button class="btn" id="startAtBtn" type="button">Start at this time</button>
+            </div>
+            <p class="note">Already a few minutes in, or starting later? Pick the time and the wedges line up with the real clock.</p>
+          </div>
+          <div class="startbox" id="dayStartBox" hidden>
+            <button class="btn go bigstart" id="startDay" type="button">▶ Start my day</button>
+            <button class="btn" id="startDayNow" type="button">Start the day now instead</button>
+            <p class="note">My day uses the hour hand. The whole face is 12 hours, so each hour is one number on the clock.</p>
+          </div>
+          <div class="startbox" id="editBox" hidden>
+            <button class="btn go bigstart" id="backToClock" type="button">◀ Back to the clock</button>
+          </div>
+        </div>
+
+        <div class="sheet tape saved" id="savedBox">
+          <h2 style="font-size:1.35rem">Saved plans</h2>
+          <ul id="savedList"></ul>
+          <div class="row">
+            <button class="btn sm" id="saveBtn" type="button">💾 Save this plan</button>
+            <button class="btn sm" id="newBtn" type="button">＋ New plan</button>
+          </div>
+        </div>
+
+        <div class="sheet tape saved" id="lastBox" hidden>
+          <h2 style="font-size:1.35rem">Last session</h2>
+          <p class="note" id="lastInfo"></p>
+          <div class="row"><button class="btn sm primary" id="lastSumBtn" type="button">📋 Copy summary for notes</button></div>
+        </div>
+      </aside>
+    </div>
+    <div class="weekgrid" id="weekGrid" hidden>
+      <div class="sheet tape week">
+        <h2>My week</h2>
+        <p class="note">Choose a saved plan for each day. Today's plan is ready to start, and you can open any day to change it together.</p>
+        <ol class="days" id="days"></ol>
+        <p class="note" id="weekEmpty" hidden>Save a plan in My hour or My day first. Then you can choose it for a day here.</p>
+      </div>
+      <aside class="side">
+        <div class="sheet tape preview">
+          <h2 style="font-size:1.5rem" id="todayTitle">Today</h2>
+          <div class="clockbox"><svg class="clock" id="weekClock" viewBox="-110 -110 220 220" role="img" aria-label="Today's plan on the clock"></svg></div>
+          <p class="note" id="todayNote" style="text-align:center"></p>
+          <div class="startbox">
+            <button class="btn go bigstart" id="startToday" type="button">▶ Start today's plan</button>
+            <button class="btn" id="editToday" type="button">✎ Open today's plan</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+    <p class="privacy">Plans and photos are kept in this browser on this device. Nothing is uploaded anywhere. <span id="plusNote"></span></p>
+  </section>
+
+  <!-- ============ RUN ============ -->
+  <section id="runView" hidden>
+    <div class="run">
+      <div>
+        <div class="bigclock"><svg class="clock" id="runClock" viewBox="-110 -110 220 220" role="img" aria-label="Schedule clock"></svg></div>
+        <div class="digital" id="digital"></div>
+      </div>
+      <div class="cards">
+        <div class="sheet tape now" id="nowCard"></div>
+        <div class="sheet next" id="nextCard"></div>
+        <div class="strip" id="strip"></div>
+        <div class="controls">
+          <button class="btn primary" id="checkBtn" type="button">💬 Check in</button>
+          <button class="btn go" id="doneBtn" type="button">✓ Done, next!</button>
+          <button class="btn" id="moreBtn" type="button">＋ More time</button>
+          <button class="btn" id="addBtnRun" type="button">＋ Add activity</button>
+          <button class="btn" id="changeBtn" type="button">✎ Change plan</button>
+          <button class="btn" id="sumBtn" type="button">📋 Notes summary</button>
+          <button class="btn" id="fsBtn" type="button">⛶ Full screen</button>
+          <button class="btn ghost" id="endBtn" type="button">✕ End</button>
+        </div>
+        <div class="runbar">
+          <label class="toggle"><input type="checkbox" id="optSound" checked> Chime</label>
+          <label class="toggle"><input type="checkbox" id="optSpeak"> Say it out loud</label>
+          <label class="toggle"><input type="checkbox" id="optSec" checked> Second hand</label>
+          <label class="toggle"><input type="checkbox" id="optDigital"> Digital time</label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <article id="aboutView" class="about" hidden>
+    <div class="sheet tape hero">
+      <p class="label">About co-creating</p>
+      <h1>A plan we make together</h1>
+      <p class="lede">WePlan Clock is a shared map of the session. The child helps decide what goes on it, sees how long each part lasts, and can ask to change it. The goal is predictability and a voice in the plan, so the child knows what is coming and trusts that they have a say.</p>
+    </div>
+
+    <section class="sheet tape">
+      <h2>Predictability, not compliance</h2>
+      <p>Knowing what comes next, and when, can make a session feel safer. Many children find transitions easier when they can see the change coming. A visual schedule supports that.</p>
+      <p>The schedule is not a tool to make a child obey. The clock is never the reason a child “has to” do something, and it isn't a reward chart or a countdown to a consequence. When a child says no to an activity, that tells us something about what they need, and the plan can change.</p>
+      <div class="pair">
+        <div class="yes"><b>Use it to</b><ul><li>Show what's coming and how long it lasts</li><li>Give the child real choices</li><li>Talk about time together</li><li>Make changes visible when the child asks</li></ul></div>
+        <div class="no"><b>Avoid using it to</b><ul><li>Insist “the clock says so”</li><li>Take away preferred activities as a consequence</li><li>Hurry a child who is regulating or engaged</li><li>Lock in a plan the child no longer agrees with</li></ul></div>
+      </div>
+    </section>
+
+    <section class="sheet tape">
+      <h2>Building the plan together</h2>
+      <ul>
+        <li><b>Offer choices.</b> Let the child pick activities, or choose from a few options you set out.</li>
+        <li><b>Let them set the order.</b> Dragging the cards around is a planning skill in itself.</li>
+        <li><b>Use their pictures.</b> Photos of the real swing, the real obstacle course, or the child's own drawings mean more than generic symbols. Many children like taking the photos themselves.</li>
+        <li><b>Let them pick colors.</b> Ownership grows from small choices.</li>
+        <li><b>Be open about your ideas.</b> If there's something you'd like to try, share it as an invitation and let the child decide whether and where it fits.</li>
+        <li><b>Follow their interests.</b> Build activities around what the child loves, like dinosaurs, trains or a favorite show, so the plan feels like theirs.</li>
+      </ul>
+      <div class="say">
+        <p>“I'd love for us to try the climbing wall today. Where should it go in our plan?”</p>
+        <p>“You picked swing and the obstacle course. Which one should come first?”</p>
+      </div>
+    </section>
+
+    <section class="sheet tape">
+      <h2>Talking about time</h2>
+      <p>Time is hard to see, and that makes it hard to manage. Each wedge turns time into something the child can see shrinking as the minute hand moves through it. That supports time awareness, estimating and planning, which are all parts of executive functioning.</p>
+      <ul>
+        <li><b>Estimate first.</b> Ask how long the child thinks an activity will take before setting the minutes.</li>
+        <li><b>Notice time passing.</b> Point to where the minute hand is: “We're in the green part. That's swing time.”</li>
+        <li><b>Compare.</b> “We planned 10 minutes. Did that feel long or short?” There is no wrong answer; every child experiences time differently.</li>
+        <li><b>Use Split time evenly</b> as a starting point, then talk about which activities need more or less.</li>
+        <li><b>Hand it over gradually.</b> Over time the child can set the minutes, check the clock and say when it's time to move on.</li>
+      </ul>
+      <div class="say">
+        <p>“How many minutes do you think the obstacle course needs?”</p>
+        <p>“The minute hand is almost at the end of the orange wedge. What's coming next?”</p>
+      </div>
+    </section>
+
+    <section class="sheet tape">
+      <h2>Check in often, and change the plan when asked</h2>
+      <p>A plan made together stays together. Check in during the session, especially near the end of each wedge. When the child asks for more time, less time, or something different, adjust the plan wherever it's safe and possible, and let them see the change on the clock. That shows their words make a difference.</p>
+      <p>Use the <b>💬 Check in</b> button during a session. It gives the child picture choices: more time, all done, change the plan, or it's going great. <b>✎ Change plan</b> lets you edit together while the clock keeps running.</p>
+      <p>Changing the plan isn't a failure. It's practice with flexible thinking, which is an important part of planning. When something truly can't change, explain why, and offer a choice inside it.</p>
+      <div class="say">
+        <p>“How's this going? Do you want more time, less time, or something different?”</p>
+        <p>“Plans can change. Let's move it and see what the clock looks like now.”</p>
+        <p>“Your ride is coming at 4:00, so swing can't go longer today. Do you want one more big push, or a slow countdown to stop?”</p>
+      </div>
+    </section>
+
+    <section class="sheet tape">
+      <h2>Planning the day</h2>
+      <p>The <b>My day</b> option works the same way over a longer stretch. It uses the hour hand, so the whole clock face is 12 hours and each wedge might be an hour or more. Families can plan a weekend, a school break or a busy afternoon together, with the same choices, check-ins and changes.</p>
+      <p><b>My week</b> lets you choose a saved plan for each day, so the week is predictable too. On busy mornings, today's plan is ready to start.</p>
+    </section>
+
+    <section class="sheet tape">
+      <h2>Using WePlan Clock</h2>
+      <ol>
+        <li>Choose the activities together and add a picture for each.</li>
+        <li>Estimate the minutes, or tap Split time evenly and adjust from there.</li>
+        <li>Drag the cards into the order you agree on.</li>
+        <li>Tap Start now, or pick the time the session started.</li>
+        <li>Check in as you go and change the plan when the child asks.</li>
+        <li>At the end, talk about how the time felt and save the plan for next time.</li>
+      </ol>
+      <p class="note">Plans and photos are kept only in this browser on this device.</p>
+    </section>
+    <div class="cta"><button class="btn primary" type="button" id="aboutBack">Go to the schedule</button></div>
+  </article>
+</div>
+<div class="flash" id="flash"></div>
+
+<dialog id="picDlg">
+  <div class="sheet tape dlg">
+    <h3>Choose a picture</h3>
+    <div class="dlgrow">
+      <label class="btn primary">📷 Take or upload photo<input type="file" id="picFile" accept="image/*" hidden></label>
+      <button class="btn" id="picNone" type="button">No picture</button>
+    </div>
+    <div id="myPicsWrap"><p class="label" style="margin-bottom:6px">Your pictures</p><div class="picgrid" id="myPics"></div></div>
+    <div><p class="label" style="margin-bottom:6px">Picture symbols</p><div class="picgrid" id="emojiGrid"></div></div>
+    <div class="dlgfoot"><button class="btn" id="picClose" type="button">Close</button></div>
+  </div>
+</dialog>
+
+<dialog id="ciDlg">
+  <div class="sheet tape dlg">
+    <h3 id="ciTitle">How's it going?</h3>
+    <div class="cigrid">
+      <button type="button" data-ci="more"><span>⏳</span><em style="font-style:normal" id="ciMoreLabel">I need more time</em></button>
+      <button type="button" data-ci="done"><span>✅</span><em style="font-style:normal" id="ciDoneLabel">I'm all done</em></button>
+      <button type="button" data-ci="change"><span>🔀</span>Let's change the plan</button>
+      <button type="button" data-ci="good"><span>👍</span>It's going great</button>
+    </div>
+    <p class="note">The clock updates right away, so the child can see their choice on it.</p>
+  </div>
+</dialog>
+
+<dialog id="plusDlg">
+  <div class="sheet tape dlg">
+    <p class="label">WePlan Clock Plus</p>
+    <h3>More ways to plan together</h3>
+    <p><span class="price" id="plusPrice">$2.99</span> <span class="note">one time. No subscription, no ads.</span></p>
+    <ul class="pluslist">
+      <li>📅 <b>My day</b>: plan a whole day on the hour hand.</li>
+      <li>🗓️ <b>My week</b>: pick a plan for each day, so every day is ready to go.</li>
+      <li>💾 <b>Unlimited saved plans</b>. The free version keeps 3.</li>
+      <li>👤 <b>Child profiles</b>: separate plans, pictures, voices and week for each child, sibling or client.</li>
+      <li>🎤 <b>Recorded voices</b>: record "Time for swing!" in a parent's, therapist's or the child's own voice, played at each change.</li>
+    </ul>
+    <p class="note">Planning with a child stays free: My hour, photos, picture symbols, check-ins and changing the plan.</p>
+    <p class="note" id="plusMsg" role="status"></p>
+    <p class="preview-note" id="plusPreviewNote">Preview: this button turns on Plus in this browser so you can try it. In the app store version it will be the $2.99 purchase.</p>
+    <div class="dlgfoot"><button class="linkbtn" type="button" id="plusRestore" hidden style="margin-right:auto">Restore purchases</button><button class="btn" type="button" id="plusClose">Not now</button><button class="btn primary" type="button" id="plusBuy">Unlock Plus (preview)</button></div>
+  </div>
+</dialog>
+
+<dialog id="sumDlg">
+  <div class="sheet tape dlg">
+    <h3>Summary for treatment notes</h3>
+    <p class="note">Copy this into your notes. You can edit it here first.</p>
+    <textarea id="sumText" rows="14" aria-label="Session summary" spellcheck="false"></textarea>
+    <p class="note" id="sumStatus" role="status"></p>
+    <div class="dlgfoot"><button class="btn" type="button" id="sumClose">Close</button><button class="btn primary" type="button" id="sumCopy">📋 Copy</button></div>
+  </div>
+</dialog>
+
+<dialog id="moreDlg">
+  <div class="sheet tape dlg">
+    <h3>How much more time?</h3>
+    <div class="chips" id="moreChips"></div>
+    <form class="dlgrow" id="moreForm">
+      <span class="lenwrap"><input type="number" id="moreCustom" min="1" step="1" inputmode="numeric" aria-label="Minutes to add" placeholder="#"><span>minutes</span></span>
+      <button class="btn primary" type="submit">Add time</button>
+    </form>
+    <p class="note" id="moreNote"></p>
+    <div class="dlgfoot"><button class="btn" type="button" id="moreClose">Cancel</button></div>
+  </div>
+</dialog>
+
+<dialog id="addDlg">
+  <div class="sheet tape dlg">
+    <h3>Add an activity</h3>
+    <p class="note" id="addNote"></p>
+    <div class="chips" id="addQuick"></div>
+    <form class="dlgrow" id="addForm">
+      <input type="text" id="addName" placeholder="Something else" autocomplete="off" aria-label="Your own activity" style="flex:1 1 180px">
+      <span class="lenwrap"><input type="number" id="addMins" min="1" step="1" inputmode="numeric" aria-label="Minutes"><span>min</span></span>
+      <button class="btn primary" type="submit">＋ Add</button>
+    </form>
+    <div class="dlgfoot"><button class="btn" type="button" id="addClose">Cancel</button></div>
+  </div>
+</dialog>
+
+<dialog id="voiceDlg">
+  <div class="sheet tape dlg">
+    <h3>Voice for <span id="voiceFor"></span></h3>
+    <p class="note">This plays when the activity starts. Try “Time for swing!” in your voice or the child's.</p>
+    <div class="dlgrow">
+      <button class="btn primary" type="button" id="voiceRec">🎤 Record</button>
+      <label class="btn">📁 Upload a voice memo<input type="file" id="voiceFile" accept="audio/*" hidden></label>
+      <button class="btn" type="button" id="voicePlay">▶ Play</button>
+      <button class="btn ghost" type="button" id="voiceDel">🗑 Remove</button>
+    </div>
+    <p class="note" id="voiceStatus" role="status"></p>
+    <div class="dlgfoot"><button class="btn" type="button" id="voiceClose">Done</button></div>
+  </div>
+</dialog>
+
+<dialog id="profDlg">
+  <div class="sheet tape dlg">
+    <h3>Who is planning?</h3>
+    <p class="note">Each child has their own plans, pictures, voices and week. First names are enough.</p>
+    <ul class="proflist" id="profList"></ul>
+    <form class="dlgrow" id="profAdd">
+      <input type="text" id="profNew" placeholder="Child's first name" autocomplete="off" style="flex:1 1 160px">
+      <button class="btn primary" type="submit">＋ Add child</button>
+    </form>
+    <div class="dlgfoot"><button class="btn" type="button" id="profClose">Done</button></div>
+  </div>
+</dialog>
+
+<dialog id="gateDlg">
+  <form class="sheet tape dlg" id="gateForm">
+    <p class="label">For grown-ups</p>
+    <h3 id="gateQ"></h3>
+    <input type="number" id="gateA" inputmode="numeric" aria-label="Answer" autocomplete="off">
+    <p class="note" id="gateMsg" role="status"></p>
+    <div class="dlgfoot"><button class="btn" type="button" id="gateNo">Cancel</button><button class="btn primary" type="submit">Continue</button></div>
+  </form>
+</dialog>
+
+<dialog id="askDlg">
+  <form class="sheet tape dlg" id="askForm" method="dialog">
+    <h3 id="askMsg"></h3>
+    <input type="text" id="askInput" autocomplete="off" hidden>
+    <div class="dlgfoot"><button class="btn" type="button" id="askNo">Cancel</button><button class="btn primary" type="submit" id="askYes">OK</button></div>
+  </form>
+</dialog>
+
+<script>
+(() => {
+'use strict';
+/* ---------- constants ---------- */
+const COLORS = ['#E2483C','#F28C28','#F2B705','#1FA463','#2BA3B8','#3D6FD9','#7A4FD1','#D9468F','#8B5E3C','#6B7A8F'];
+const EMOJI = ['🛝','🧗','🤸','🏀','⚽','🎯','🧩','🧱','✏️','✂️','🎨','📚','🎲','🃏','🫧','🎵','🥁','🍎','🥤','🧘','🛋️','🦘','🚲','🏃','🛹','🪀','🎳','🧸','🔤','🔢','👐','🙌','🧼','🧹','✅','⭐','🏫','🚗','🍳','🥪','🍝','🛁','🪥','👕','🛏️','📺','🌳','🐶','👋','💤','🌈','🦖','🏰','🚀','🪁','🏕️','🫘','🙈','🦄','🐉','🧚','🪄','🏖️','🎪'];
+const QUICK = {
+  session: [['Swing','🛝'],['Obstacle course','🧗'],['Climbing','🧗‍♀️'],['Crash pad','🛋️'],['Trampoline','🦘'],['Scooter board','🛹'],['Ball games','⚽'],['Pretend play','🦖'],['Building','🧱'],['Messy art','🎨'],['Sensory bin','🫘'],['Music & movement','🎵'],['Bubbles','🫧'],['Hide & seek','🙈'],['Board game','🎲'],['Cozy corner','🏕️'],['Snack','🍎'],['Say goodbye','👋']],
+  day: [['Breakfast','🍳'],['Get dressed','👕'],['School','🏫'],['Car ride','🚗'],['Lunch','🥪'],['Rest & recharge','🛋️'],['Play outside','🌳'],['Free play','🧸'],['Screen time','📺'],['Dinner','🍝'],['Bath','🛁'],['Brush teeth','🪥'],['Bedtime','🛏️']]
+};
+const $ = id => document.getElementById(id);
+const uid = () => Math.random().toString(36).slice(2, 10);
+const clone = o => JSON.parse(JSON.stringify(o));
+
+/* ---------- native app features (iPhone, iPad, Android). On the website these do nothing. ---------- */
+const Cap = window.Capacitor;
+const isNative = !!(Cap && Cap.isNativePlatform && Cap.isNativePlatform());
+const plug = name => (isNative && Cap.Plugins && Cap.Plugins[name]) || null;
+const PLUS_ID = 'weplan_plus'; // the same in-app purchase ID in App Store Connect and Google Play Console
+
+/* ---------- in-page questions (artifacts can't show browser pop-ups) ---------- */
+function ask(msg, { yes = 'OK', no = 'Cancel', input = null } = {}) {
+  return new Promise(res => {
+    const d = $('askDlg'), inp = $('askInput');
+    $('askMsg').textContent = msg; $('askYes').textContent = yes;
+    $('askNo').textContent = no || ''; $('askNo').hidden = no === null;
+    inp.hidden = input === null; inp.value = input || '';
+    let done = false;
+    const finish = v => { if (done) return; done = true; d.close(); res(v); };
+    $('askForm').onsubmit = e => { e.preventDefault(); finish(input === null ? true : inp.value.trim() || null); };
+    $('askNo').onclick = () => finish(input === null ? false : null);
+    d.oncancel = e => { e.preventDefault(); finish(input === null ? false : null); };
+    d.showModal(); (input === null ? $('askYes') : inp).focus();
+  });
+}
+
+/* ---------- storage: IndexedDB, falls back to memory ---------- */
+const mem = {};
+let dbp = null;
+function db() {
+  if (dbp) return dbp;
+  dbp = new Promise(res => {
+    try {
+      const r = indexedDB.open('plan-clock', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => res(null);
+    } catch (e) { res(null); }
+  });
+  return dbp;
+}
+async function get(k) {
+  const d = await db();
+  if (!d) return mem[k];
+  return new Promise(res => {
+    try { const q = d.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(mem[k]); }
+    catch (e) { res(mem[k]); }
+  });
+}
+async function set(k, v) {
+  mem[k] = v;
+  const d = await db();
+  if (!d) return;
+  try { d.transaction('kv', 'readwrite').objectStore('kv').put(v, k); } catch (e) {}
+}
+const pref = {
+  get(k, def) { try { const v = localStorage.getItem('pc-' + k); return v === null ? def : JSON.parse(v); } catch (e) { return def; } },
+  set(k, v) { try { localStorage.setItem('pc-' + k, JSON.stringify(v)); } catch (e) {} }
+};
+
+/* ---------- plans ---------- */
+function blankSession() {
+  return { id: uid(), mode: 'session', name: '', sessionLen: 60, items: [
+    { id: uid(), name: 'Hello & plan together', dur: 5, color: COLORS[5], pic: { e: '👋' } },
+    { id: uid(), name: 'Swing', dur: 15, color: COLORS[3], pic: { e: '🛝' } },
+    { id: uid(), name: 'Obstacle course', dur: 15, color: COLORS[1], pic: { e: '🧗' } },
+    { id: uid(), name: 'Pretend play', dur: 15, color: COLORS[6], pic: { e: '🦖' } },
+    { id: uid(), name: 'Bubbles & goodbye', dur: 10, color: COLORS[7], pic: { e: '🫧' } },
+  ] };
+}
+function blankDay() {
+  return { id: uid(), mode: 'day', name: '', dayStart: '08:00', dayEnd: '18:00', items: [
+    { id: uid(), name: 'Breakfast', dur: 30, color: COLORS[1], pic: { e: '🍳' } },
+    { id: uid(), name: 'Get dressed', dur: 30, color: COLORS[4], pic: { e: '👕' } },
+    { id: uid(), name: 'Park', dur: 120, color: COLORS[3], pic: { e: '🌳' } },
+    { id: uid(), name: 'Lunch', dur: 45, color: COLORS[2], pic: { e: '🥪' } },
+    { id: uid(), name: 'Rest & recharge', dur: 60, color: COLORS[5], pic: { e: '🛋️' } },
+    { id: uid(), name: 'Crafts', dur: 60, color: COLORS[7], pic: { e: '🎨' } },
+    { id: uid(), name: 'Free play', dur: 90, color: COLORS[6], pic: { e: '🧸' } },
+    { id: uid(), name: 'Dinner', dur: 60, color: COLORS[0], pic: { e: '🍝' } },
+    { id: uid(), name: 'Bath & bedtime story', dur: 105, color: COLORS[8], pic: { e: '🛁' } },
+  ] };
+}
+const toMin = v => { const m = /^(\d{1,2}):(\d{2})/.exec(v || ''); return m ? +m[1] * 60 + +m[2] : null; };
+function planLen(p) {
+  if (p.mode !== 'day') return p.sessionLen;
+  const a = toMin(p.dayStart), b = toMin(p.dayEnd);
+  if (a === null || b === null) return 0;
+  return b > a ? b - a : b + 1440 - a;
+}
+const unitOf = mode => mode === 'day' ? 15 : 1;
+const sum = items => items.reduce((a, i) => a + i.dur, 0);
+
+let plus = !!pref.get('plus', false);
+const startPref = pref.get('mode', 'session');
+let weekView = startPref === 'week' && plus;
+let mode = startPref === 'day' && plus ? 'day' : 'session';
+let week = {};            // weekday index (0 = Monday) -> saved plan id
+let profiles = [{ id: 'default', name: 'My plans' }];
+let profileId = pref.get('profile', 'default');
+// Each child profile keeps its own drafts, saved plans, pictures and week under its own keys.
+const keyFor = (pid, k) => pid === 'default' ? k : `p:${pid}:${k}`;
+const K = k => keyFor(profileId, k);
+let drafts = { session: blankSession(), day: blankDay() };
+let plan = drafts[mode];
+let saved = [], pics = [];
+let run = null;           // {mode,name,sessionLen,startMs,items}
+let editing = false, stash = null;
+
+const saveDraft = () => { if (!editing) { drafts[mode] = plan; set(K('draft-' + mode), plan); } };
+
+/* ---------- formatting ---------- */
+function fmtDur(m) {
+  const r = Math.round(m); if (r < 60) return r + ' min';
+  const h = Math.floor(r / 60), mm = r % 60; return mm ? `${h} h ${mm} min` : `${h} h`;
+}
+function minsText(ms) {
+  if (ms < 60000) { const s = Math.ceil(ms / 1000); return `${s} second${s === 1 ? '' : 's'}`; }
+  const m = Math.ceil(ms / 60000);
+  if (m < 60) return `${m} minute${m === 1 ? '' : 's'}`;
+  const h = Math.floor(m / 60), mm = m % 60;
+  return `${h} hour${h === 1 ? '' : 's'}${mm ? ` ${mm} minute${mm === 1 ? '' : 's'}` : ''}`;
+}
+const fmt = d => new Date(d).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+function timeToday(v) { const m = toMin(v); if (m === null) return null; const d = new Date(); d.setHours(0, m, 0, 0); return d; }
+function picHTML(pic) {
+  if (!pic) return '';
+  if (pic.src) return `<img src="${pic.src}" alt="">`;
+  if (pic.e) return `<span class="emo" aria-hidden="true">${pic.e}</span>`;
+  return '';
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+/* ---------- planner rendering ---------- */
+function renderModeBar() {
+  const cur = weekView ? 'week' : plan.mode;
+  [['modeSession', 'session', 'My hour'], ['modeDay', 'day', 'My day'], ['modeWeek', 'week', 'My week']].forEach(([id, m, label]) => {
+    const b = $(id); b.setAttribute('aria-pressed', cur === m); b.disabled = editing;
+    b.innerHTML = label + (m !== 'session' && !plus ? ' <span class="lock" aria-label="Plus">🔒</span>' : '');
+  });
+  $('modeNote').textContent = cur === 'week' ? 'Pick a plan for each day of the week' : cur === 'day' ? 'Plan a day with the hour hand' : 'Plan an hour with the minute hand';
+  $('planGrid').hidden = weekView; $('weekGrid').hidden = !weekView;
+  renderProfileChip();
+  $('plusNote').innerHTML = plus ? (isNative ? 'WePlan Clock Plus is unlocked. Thank you!' : 'WePlan Clock Plus preview is on. <button type="button" class="linkbtn" id="relock">Turn it off</button>') : '<button type="button" class="linkbtn seeplus">See WePlan Clock Plus</button>';
+}
+function renderPlan() {
+  renderModeBar();
+  if (weekView) return renderWeek();
+  const day = plan.mode === 'day';
+  $('planName').value = plan.name;
+  $('planName').placeholder = day ? 'Saturday with Grandma' : "Sam's Tuesday session";
+  $('lenField').hidden = day; $('dayStartField').hidden = $('dayEndField').hidden = !day;
+  if (!day) $('sessLen').value = String(plan.sessionLen);
+  else { $('dayStart').value = plan.dayStart; $('dayEnd').value = plan.dayEnd; $('dayStart').disabled = editing; }
+  $('editBanner').hidden = !editing;
+  $('sessStartBox').hidden = editing || day; $('dayStartBox').hidden = editing || !day; $('editBox').hidden = !editing;
+  $('savedBox').hidden = editing;
+  renderLast();
+  $('quick').innerHTML = QUICK[plan.mode].map(([n, e]) => `<button type="button" class="chip" data-n="${n}" data-e="${e}"><span aria-hidden="true">${e}</span>${n}</button>`).join('');
+  const now = Date.now(), timed = editing ? withTimes(plan.items, run.startMs) : null;
+  const ol = $('items'); ol.innerHTML = '';
+  plan.items.forEach((it, i) => {
+    const li = document.createElement('li');
+    const isDone = timed && timed[i].e <= now;
+    li.className = 'item' + (isDone ? ' isdone' : '');
+    li.dataset.id = it.id;
+    li.style.setProperty('--c', it.color);
+    const nm = esc(it.name || 'activity');
+    if (it.gap) { li.className = 'item gaprow'; li.innerHTML = `<p class="gapinfo">Free time · ${fmtDur(it.dur)}</p>`; ol.appendChild(li); return; }
+    li.innerHTML = `
+      <button type="button" class="grip" aria-label="Move ${nm}. Drag, or use the up and down arrow keys.">⋮⋮</button>
+      <button type="button" class="picbtn ${it.pic ? 'has' : ''}" data-act="pic" aria-label="Picture for ${nm}">${it.pic ? picHTML(it.pic) : '＋<br>picture'}</button>
+      <div class="mid">
+        <input type="text" value="${esc(it.name)}" placeholder="Activity name" data-act="name" aria-label="Activity name">
+        <div class="mins">
+          <span class="step"><button type="button" data-act="minus" aria-label="Less time">−</button><input type="number" data-act="dur" min="1" max="${planLen(plan) || 720}" step="1" inputmode="numeric" value="${Math.round(it.dur)}" aria-label="Minutes for ${nm}"><span class="unit">min</span><button type="button" data-act="plus" aria-label="More time">＋</button></span>
+          ${plan.mode === 'day' && it.dur >= 60 ? `<span class="note">${fmtDur(it.dur)}</span>` : ''}
+          <button type="button" class="btn sm voicebtn ${it.voice ? '' : 'ghost'}" data-act="voice" aria-label="Recorded voice for ${nm}">${it.voice ? '🔊' : '🎤'} Voice${plus ? '' : ' 🔒'}</button>
+          ${isDone ? '<span class="donetag">✓ Done</span>' : ''}
+          <div class="swatches" role="group" aria-label="Color">${COLORS.map(c => `<button type="button" class="sw" style="--c:${c}" data-act="color" data-c="${c}" aria-pressed="${c === it.color}" aria-label="Color ${c}"></button>`).join('')}</div>
+        </div>
+      </div>
+      <button type="button" class="btn icon ghost del" data-act="del" aria-label="Remove ${nm}">🗑</button>`;
+    ol.appendChild(li);
+  });
+  renderTotal();
+  renderPreview();
+}
+function renderTotal() {
+  const t = sum(plan.items), L = planLen(plan), el = $('total'), day = plan.mode === 'day';
+  const over = t > L + 1e-6;
+  el.classList.toggle('over', over);
+  const range = day && L ? ` · ${fmt(timeToday(plan.dayStart))} to ${fmt(timeToday(plan.dayEnd))}` : '';
+  el.innerHTML = over
+    ? `<span>Planned ${fmtDur(t)} of ${fmtDur(L)}${range}</span><span>${fmtDur(t - L)} too much</span>`
+    : `<span>Planned ${fmtDur(t)} of ${fmtDur(L)}${range}</span><span>${L - t >= .5 ? fmtDur(L - t) + ' free' : 'All time planned ✓'}</span>`;
+  const bad = over || t === 0 || !L;
+  ['startNow', 'startAtBtn', 'startDay', 'startDayNow', 'backToClock'].forEach(id => $(id).disabled = bad);
+  $('splitBtn').disabled = !plan.items.length || !L;
+}
+function previewStart() {
+  if (editing) return run.startMs;
+  if (plan.mode === 'day') return (timeToday(plan.dayStart) || new Date()).getTime();
+  const d = $('startAt').value ? timeToday($('startAt').value) : null;
+  if (d) return d.getTime();
+  const n = new Date(); n.setSeconds(0, 0); return n.getTime();
+}
+function renderPreview() {
+  const start = previewStart(), L = planLen(plan);
+  drawClock($('previewClock'), { items: withTimes(plan.items, start), startMs: start, sessionLen: L, scale: plan.mode === 'day' ? 'hour' : 'min', showSec: false, preview: !editing });
+  const end = start + L * 60000;
+  let t;
+  if (editing) t = `Started at ${fmt(start)}. Ends at ${fmt(end)}.`;
+  else if (plan.mode === 'day') t = L ? `The day runs from ${fmt(start)} to ${fmt(end)}.` + (L > 720 ? ' The clock shows 12 hours at a time; later parts appear as the day goes on.' : '') : 'Set when the day starts and ends.';
+  else t = `If you start at ${fmt(start)}, the session ends at ${fmt(end)}.`;
+  $('previewNote').textContent = t;
+}
+
+/* ---------- planner events ---------- */
+$('items').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b || b.tagName === 'INPUT') return;
+  const li = b.closest('.item'), i = plan.items.findIndex(x => x.id === li.dataset.id), it = plan.items[i];
+  const act = b.dataset.act, u = unitOf(plan.mode);
+  if (act === 'minus') it.dur = Math.max(u, Math.ceil(it.dur / u - 1e-6) * u - u);
+  else if (act === 'plus') it.dur = Math.min(planLen(plan) || 720, Math.floor(it.dur / u + 1e-6) * u + u);
+  else if (act === 'color') it.color = b.dataset.c;
+  else if (act === 'del') plan.items.splice(i, 1);
+  else if (act === 'pic') return openPic(it);
+  else if (act === 'voice') return openVoice(it);
+  else return;
+  saveDraft(); renderPlan();
+  if (act !== 'del') $('items').querySelector(`[data-id="${it.id}"] [data-act="${act}"]${act === 'color' ? `[data-c="${it.color}"]` : ''}`)?.focus();
+});
+// Typed minutes for one activity (the + and − buttons still work too).
+$('items').addEventListener('change', e => {
+  if (e.target.dataset.act !== 'dur') return;
+  const it = plan.items.find(x => x.id === e.target.closest('.item').dataset.id);
+  const v = Math.round(+e.target.value);
+  if (v > 0) it.dur = Math.min(v, planLen(plan) || 720);
+  saveDraft(); renderPlan();
+});
+$('items').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset.act === 'dur') e.target.blur(); });
+$('items').addEventListener('input', e => {
+  if (e.target.dataset.act !== 'name') return;
+  const it = plan.items.find(x => x.id === e.target.closest('.item').dataset.id);
+  it.name = e.target.value; saveDraft();
+});
+
+/* drag to reorder: works with touch, pen and mouse; arrow keys on the grip do the same */
+let drag = null;
+const ol = $('items');
+ol.addEventListener('pointerdown', e => {
+  const g = e.target.closest('.grip'); if (!g || (e.button && e.button !== 0)) return;
+  e.preventDefault();
+  const li = g.closest('.item');
+  drag = { li, id: e.pointerId, g };
+  try { g.setPointerCapture(e.pointerId); } catch (err) {}
+  li.classList.add('dragging');
+});
+ol.addEventListener('pointermove', e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  const y = e.clientY;
+  let before = null;
+  for (const s of ol.children) {
+    if (s === drag.li) continue;
+    const r = s.getBoundingClientRect();
+    if (y < r.top + r.height / 2) { before = s; break; }
+  }
+  if (before !== drag.li.nextElementSibling && before !== drag.li) ol.insertBefore(drag.li, before);
+  if (y < 70) scrollBy(0, -14); else if (y > innerHeight - 70) scrollBy(0, 14);
+});
+function endDrag(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  const order = [...ol.children].map(x => x.dataset.id), id = drag.li.dataset.id;
+  drag.li.classList.remove('dragging'); drag = null;
+  plan.items.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+  saveDraft(); renderPlan();
+  ol.querySelector(`[data-id="${id}"] .grip`)?.focus({ preventScroll: true });
+}
+ol.addEventListener('pointerup', endDrag);
+ol.addEventListener('pointercancel', endDrag);
+ol.addEventListener('keydown', e => {
+  const g = e.target.closest('.grip'); if (!g || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+  e.preventDefault();
+  const id = g.closest('.item').dataset.id, i = plan.items.findIndex(x => x.id === id), j = e.key === 'ArrowUp' ? i - 1 : i + 1;
+  if (j < 0 || j >= plan.items.length) return;
+  [plan.items[i], plan.items[j]] = [plan.items[j], plan.items[i]];
+  saveDraft(); renderPlan();
+  ol.querySelector(`[data-id="${id}"] .grip`)?.focus();
+});
+
+$('planName').addEventListener('input', e => { plan.name = e.target.value; saveDraft(); });
+// Typed minutes: whole numbers from 5 to 60 (the minute hand's full circle is one hour).
+$('sessLen').addEventListener('change', e => {
+  const v = Math.round(+e.target.value);
+  if (v) plan.sessionLen = Math.max(5, Math.min(60, v));
+  saveDraft(); renderPlan();
+});
+$('sessLen').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
+$('dayStart').addEventListener('change', e => { if (e.target.value) { plan.dayStart = e.target.value; saveDraft(); renderPlan(); } });
+$('dayEnd').addEventListener('change', e => { if (e.target.value) { plan.dayEnd = e.target.value; saveDraft(); renderPlan(); } });
+$('startAt').addEventListener('input', renderPreview);
+
+// Split evenly: whole minutes for a session, 15-minute blocks for a day; leftovers go to the first activities.
+$('splitBtn').addEventListener('click', () => {
+  const n = plan.items.length, u = unitOf(plan.mode);
+  let L = planLen(plan);
+  if (editing) { // keep finished activities as they were and share out what's left
+    const now = Date.now(), timed = withTimes(plan.items, run.startMs);
+    const open = plan.items.filter((it, i) => timed[i].e > now);
+    const fixed = plan.items.filter((it, i) => timed[i].e <= now);
+    L = L - sum(fixed); splitInto(open, L, u);
+  } else splitInto(plan.items, L, u);
+  saveDraft(); renderPlan();
+});
+function splitInto(items, L, u) {
+  const n = items.length; if (!n) return;
+  const blocks = Math.floor(L / u + 1e-6), base = Math.floor(blocks / n), extra = blocks - base * n;
+  items.forEach((it, i) => { it.dur = Math.max(u, (base + (i < extra ? 1 : 0)) * u); });
+}
+
+function nextColor() {
+  const used = plan.items.map(i => i.color);
+  return COLORS.find(c => !used.includes(c)) || COLORS[plan.items.length % COLORS.length];
+}
+function addItem(name = '', pic = null) {
+  const u = unitOf(plan.mode), free = planLen(plan) - sum(plan.items), want = plan.mode === 'day' ? 60 : 5;
+  plan.items.push({ id: uid(), name, dur: Math.max(u, Math.min(want, Math.floor(free / u) * u || want)), color: nextColor(), pic });
+  saveDraft(); renderPlan();
+}
+$('addBtn').addEventListener('click', () => { addItem(); const ins = ol.querySelectorAll('input[data-act="name"]'); ins[ins.length - 1]?.focus(); });
+$('quick').addEventListener('click', e => { const b = e.target.closest('.chip'); if (b) addItem(b.dataset.n, { e: b.dataset.e }); });
+
+function setMode(m) {
+  if (editing) return;
+  if (m !== 'session' && !plus) return openPlus();
+  if (m === 'week') { weekView = true; pref.set('mode', 'week'); renderPlan(); return; }
+  weekView = false;
+  if (m !== mode) { drafts[mode] = plan; mode = m; plan = drafts[m]; }
+  pref.set('mode', m); renderPlan();
+}
+$('modeSession').addEventListener('click', () => setMode('session'));
+$('modeDay').addEventListener('click', () => setMode('day'));
+$('modeWeek').addEventListener('click', () => setMode('week'));
+
+/* ---------- Plus (one-time upgrade; a preview switch in this version) ---------- */
+function openPlus() { renderPlusDlg(); showPlusMsg(''); $('plusDlg').showModal(); }
+function showPlusMsg(t) { $('plusMsg').textContent = t; }
+function renderPlusDlg() {
+  const price = (Store.product && Store.product.pricing && Store.product.pricing.price) || '$2.99';
+  $('plusPrice').textContent = price;
+  $('plusBuy').textContent = isNative ? `Unlock Plus for ${price}` : 'Unlock Plus (preview)';
+  $('plusRestore').hidden = !isNative; $('plusPreviewNote').hidden = isNative;
+}
+function unlockPlus() {
+  plus = true; pref.set('plus', true);
+  if ($('plusDlg').open) $('plusDlg').close();
+  renderPlan(); renderSaved();
+}
+// One-time purchase through Apple or Google (cordova-plugin-purchase). Plus is remembered on the device.
+const Store = {
+  product: null,
+  init() {
+    if (!isNative) return;
+    const start = () => {
+      const C = window.CdvPurchase; if (!C) return;
+      const { store, ProductType, Platform } = C;
+      const platform = Cap.getPlatform() === 'ios' ? Platform.APPLE_APPSTORE : Platform.GOOGLE_PLAY;
+      store.register([{ id: PLUS_ID, type: ProductType.NON_CONSUMABLE, platform }]);
+      store.when()
+        .productUpdated(() => Store.refresh())
+        .approved(t => t.verify())
+        .verified(r => r.finish())
+        .receiptUpdated(() => Store.refresh());
+      store.initialize([platform]).then(() => Store.refresh());
+    };
+    if (window.CdvPurchase) start(); else document.addEventListener('deviceready', start, { once: true });
+  },
+  refresh() {
+    const C = window.CdvPurchase; if (!C) return;
+    Store.product = C.store.get(PLUS_ID) || null;
+    if (C.store.owned(PLUS_ID) && !plus) unlockPlus();
+    renderPlusDlg();
+  },
+  buy() {
+    const C = window.CdvPurchase, offer = Store.product && Store.product.getOffer();
+    if (!C || !offer) return false;
+    offer.order().then(err => {
+      if (err && err.code !== C.ErrorCode.PAYMENT_CANCELLED) showPlusMsg("The purchase didn't go through. Please try again.");
+    });
+    return true;
+  },
+  restore() {
+    const C = window.CdvPurchase; if (!C) { showPlusMsg("The store isn't available right now. Check your connection and try again."); return; }
+    showPlusMsg('Checking your purchases…');
+    C.store.restorePurchases().then(() => {
+      Store.refresh();
+      showPlusMsg(plus ? 'Plus is unlocked. Thank you!' : 'No earlier purchase was found for this account.');
+    });
+  }
+};
+$('plusRestore').addEventListener('click', () => Store.restore());
+
+/* parent gate: purchases ask a grown-up first (App Store and Google Play rules for apps children use) */
+let gateCb = null, gateAns = 0;
+function parentGate(cb) {
+  const a = 3 + Math.floor(Math.random() * 7), b = 3 + Math.floor(Math.random() * 7);
+  gateAns = a * b; gateCb = cb;
+  $('gateQ').textContent = `Please ask a grown-up. What is ${a} × ${b}?`;
+  $('gateA').value = ''; $('gateMsg').textContent = '';
+  $('gateDlg').showModal(); $('gateA').focus();
+}
+$('gateForm').addEventListener('submit', e => {
+  e.preventDefault();
+  if (+$('gateA').value === gateAns) { $('gateDlg').close(); const cb = gateCb; gateCb = null; if (cb) cb(); }
+  else { $('gateMsg').textContent = "That's not quite right. Try again."; $('gateA').select(); }
+});
+$('gateNo').addEventListener('click', () => $('gateDlg').close());
+$('plusClose').addEventListener('click', () => $('plusDlg').close());
+$('plusDlg').addEventListener('click', e => { if (e.target === $('plusDlg')) $('plusDlg').close(); });
+$('plusBuy').addEventListener('click', () => {
+  if (!isNative) { unlockPlus(); return; }
+  parentGate(() => { if (!Store.buy()) showPlusMsg("The store isn't available right now. Check your connection and try again."); });
+});
+document.addEventListener('click', e => {
+  if (e.target.closest('.seeplus')) openPlus();
+  if (e.target.id === 'relock') {
+    plus = false; pref.set('plus', false);
+    if (!editing && (weekView || mode === 'day')) { weekView = false; drafts[mode] = plan; mode = 'session'; plan = drafts.session; pref.set('mode', 'session'); }
+    if (!editing && profileId !== profiles[0].id) { switchProfile(profiles[0].id); return; }
+    renderPlan(); renderSaved();
+  }
+});
+
+/* ---------- child profiles (Plus) ---------- */
+const curProfile = () => profiles.find(p => p.id === profileId) || profiles[0];
+function renderProfileChip() { $('profileName').textContent = curProfile().name; $('profileBtn').disabled = editing; }
+function renderProfiles() {
+  $('profList').innerHTML = profiles.map((p, i) => `<li class="${p.id === profileId ? 'cur' : ''}"><button type="button" class="pick" data-pick="${p.id}">${p.id === profileId ? '✓ ' : ''}${esc(p.name)}${i > 0 && !plus ? ' 🔒' : ''}</button><button type="button" class="btn sm ghost" data-ren="${p.id}" aria-label="Rename ${esc(p.name)}">✎</button>${profiles.length > 1 ? `<button type="button" class="btn sm ghost" data-delprof="${p.id}" aria-label="Delete ${esc(p.name)}">🗑</button>` : ''}</li>`).join('');
+}
+async function loadProfile() {
+  const [ds, dd, legacy, p, ps, wk] = await Promise.all([get(K('draft-session')), get(K('draft-day')), profileId === 'default' ? get('draft') : null, get(K('plans')), get(K('pics')), get(K('week'))]);
+  const ok = x => x && Array.isArray(x.items);
+  drafts = {
+    session: ok(ds) ? { ...ds, mode: 'session' } : ok(legacy) ? { ...legacy, mode: 'session' } : blankSession(),
+    day: ok(dd) ? { ...dd, mode: 'day' } : blankDay()
+  };
+  plan = drafts[mode];
+  saved = Array.isArray(p) ? p : [];
+  pics = Array.isArray(ps) ? ps : [];
+  week = wk && typeof wk === 'object' ? wk : {};
+  renderPlan(); renderSaved();
+}
+async function switchProfile(id) {
+  if (editing) return;
+  profileId = id; pref.set('profile', id);
+  await loadProfile();
+}
+$('profileBtn').addEventListener('click', () => { renderProfiles(); $('profDlg').showModal(); });
+$('profClose').addEventListener('click', () => $('profDlg').close());
+$('profDlg').addEventListener('click', e => { if (e.target === $('profDlg')) $('profDlg').close(); });
+$('profAdd').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!plus) { $('profDlg').close(); return openPlus(); }
+  const n = $('profNew').value.trim(); if (!n) { $('profNew').focus(); return; }
+  const p = { id: uid(), name: n }; profiles.push(p); set('profiles', profiles);
+  $('profNew').value = '';
+  await switchProfile(p.id); renderProfiles();
+});
+$('profList').addEventListener('click', async e => {
+  const pk = e.target.closest('[data-pick]'), rn = e.target.closest('[data-ren]'), dl = e.target.closest('[data-delprof]');
+  if (pk) {
+    if (pk.dataset.pick !== profiles[0].id && !plus) { $('profDlg').close(); return openPlus(); }
+    await switchProfile(pk.dataset.pick); $('profDlg').close();
+  } else if (rn) {
+    const p = profiles.find(x => x.id === rn.dataset.ren); $('profDlg').close();
+    const n = await ask('New name', { yes: 'Rename', input: p.name });
+    if (n) { p.name = n; set('profiles', profiles); renderProfileChip(); }
+    renderProfiles(); $('profDlg').showModal();
+  } else if (dl) {
+    const p = profiles.find(x => x.id === dl.dataset.delprof); $('profDlg').close();
+    if (await ask(`Delete ${p.name} and all of their plans, pictures and voices?`, { yes: 'Delete' })) {
+      ['draft-session', 'draft-day', 'plans', 'pics', 'week'].forEach(k => set(keyFor(p.id, k), null));
+      profiles = profiles.filter(x => x !== p); set('profiles', profiles);
+      if (p.id === profileId) await switchProfile(profiles[0].id); else renderProfileChip();
+    }
+    renderProfiles(); $('profDlg').showModal();
+  }
+});
+
+/* ---------- recorded voices (Plus) ---------- */
+let voiceTarget = null, rec = null;
+function openVoice(it) {
+  if (!plus) return openPlus();
+  voiceTarget = it; renderVoice(''); $('voiceDlg').showModal();
+}
+function renderVoice(msg) {
+  const has = !!voiceTarget.voice;
+  $('voiceFor').textContent = voiceTarget.name || 'this activity';
+  $('voicePlay').disabled = $('voiceDel').disabled = !has;
+  $('voiceStatus').textContent = msg || (has ? 'A voice is saved for this activity.' : 'No voice yet.');
+}
+function saveVoice(blob) {
+  return new Promise(res => {
+    const r = new FileReader();
+    r.onload = () => { voiceTarget.voice = r.result; saveDraft(); renderPlan(); renderVoice('Saved. Tap Play to hear it.'); res(); };
+    r.onerror = () => { renderVoice("That recording couldn't be opened. Try another one."); res(); };
+    r.readAsDataURL(blob);
+  });
+}
+function playVoice(src) { try { const a = new Audio(src); const p = a.play(); if (p) p.catch(() => {}); } catch (e) {} }
+$('voiceRec').addEventListener('click', async () => {
+  if (rec) { rec.stop(); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const chunks = [];
+    rec = new MediaRecorder(stream);
+    rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+    rec.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop());
+      const type = rec.mimeType || 'audio/webm'; rec = null;
+      $('voiceRec').textContent = '🎤 Record';
+      await saveVoice(new Blob(chunks, { type }));
+    };
+    rec.start();
+    $('voiceRec').textContent = '■ Stop';
+    renderVoice('Recording… tap Stop when you are done (up to 15 seconds).');
+    setTimeout(() => { if (rec && rec.state === 'recording') rec.stop(); }, 15000);
+  } catch (e) {
+    rec = null;
+    renderVoice("Recording isn't available here. Record a voice memo on your device and upload it instead.");
+  }
+});
+$('voiceFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  if (f.size > 1.5e6) { renderVoice('That recording is too long. Keep it to about 15 seconds.'); return; }
+  await saveVoice(f);
+});
+$('voicePlay').addEventListener('click', () => { if (voiceTarget.voice) playVoice(voiceTarget.voice); });
+$('voiceDel').addEventListener('click', () => { delete voiceTarget.voice; saveDraft(); renderPlan(); renderVoice('Removed.'); });
+$('voiceClose').addEventListener('click', () => { if (rec) rec.stop(); $('voiceDlg').close(); });
+
+/* ---------- My week ---------- */
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const todayIdx = () => (new Date().getDay() + 6) % 7;
+const weekPlan = i => saved.find(p => p.id === week[i]) || null;
+function renderWeek() {
+  const t = todayIdx();
+  const opts = saved.map(p => `<option value="${p.id}">${esc(p.name || 'Untitled plan')} (${p.mode === 'day' ? 'My day' : 'My hour'})</option>`).join('');
+  $('weekEmpty').hidden = saved.length > 0;
+  $('days').innerHTML = DAYS.map((d, i) => `<li class="day ${i === t ? 'today' : ''}"><div><small>${i === t ? 'Today' : ''}</small><b>${d}</b></div><select data-day="${i}" aria-label="Plan for ${d}"><option value="">No plan</option>${opts}</select><button type="button" class="btn sm" data-openday="${i}" ${weekPlan(i) ? '' : 'disabled'}>Open</button></li>`).join('');
+  $('days').querySelectorAll('select').forEach(s => { const p = weekPlan(+s.dataset.day); s.value = p ? p.id : ''; });
+  renderToday();
+}
+function renderToday() {
+  const p = weekPlan(todayIdx());
+  $('todayTitle').textContent = `Today: ${DAYS[todayIdx()]}`;
+  const ok = p && sum(p.items) > 0 && sum(p.items) <= planLen(p) + 1e-6;
+  $('startToday').disabled = !ok; $('editToday').disabled = !p;
+  if (!p) {
+    drawClock($('weekClock'), { items: [], startMs: Date.now(), sessionLen: 60, scale: 'min', showSec: false, preview: true });
+    $('todayNote').textContent = 'No plan chosen for today yet.';
+    return;
+  }
+  const n = new Date(); n.setSeconds(0, 0);
+  const start = p.mode === 'day' ? timeToday(p.dayStart).getTime() : n.getTime();
+  drawClock($('weekClock'), { items: withTimes(p.items, start), startMs: start, sessionLen: planLen(p), scale: p.mode === 'day' ? 'hour' : 'min', showSec: false, preview: true });
+  $('todayNote').textContent = `${p.name || 'Untitled plan'}: ` + (p.mode === 'day' ? `${fmt(start)} to ${fmt(start + planLen(p) * 60000)}` : `${fmtDur(planLen(p))}, starts when you tap Start`);
+}
+$('days').addEventListener('change', e => {
+  const s = e.target.closest('[data-day]'); if (!s) return;
+  if (s.value) week[s.dataset.day] = s.value; else delete week[s.dataset.day];
+  set(K('week'), week); renderWeek();
+});
+$('days').addEventListener('click', e => { const b = e.target.closest('[data-openday]'); if (b && weekPlan(+b.dataset.openday)) openSaved(week[b.dataset.openday]); });
+$('editToday').addEventListener('click', () => { const p = weekPlan(todayIdx()); if (p) openSaved(p.id); });
+$('startToday').addEventListener('click', () => {
+  const p = weekPlan(todayIdx()); if (!p) return;
+  openSaved(p.id);
+  (p.mode === 'day' ? $('startDay') : $('startNow')).click();
+});
+
+/* saved plans */
+function renderSaved() {
+  const ul = $('savedList');
+  ul.innerHTML = saved.length ? '' : '<li class="note" style="background:none;border:0;padding:0">No saved plans yet. Save one to use it again next time.</li>';
+  saved.forEach(p => {
+    const li = document.createElement('li');
+    li.innerHTML = `<b>${esc(p.name || 'Untitled plan')}</b><span class="kind">${p.mode === 'day' ? 'My day' : 'My hour'}</span><button class="btn sm" type="button" data-open="${p.id}">Open</button><button class="btn sm ghost" type="button" data-delp="${p.id}" aria-label="Delete ${esc(p.name || 'plan')}">🗑</button>`;
+    ul.appendChild(li);
+  });
+  if (!plus) ul.insertAdjacentHTML('beforeend', `<li class="note" style="background:none;border:0;padding:0;display:block">${Math.min(saved.length, 3)} of 3 free saved plans. <button type="button" class="linkbtn seeplus">Plus</button> saves as many as you like.</li>`);
+}
+function openSaved(id) {
+  const src = saved.find(x => x.id === id); if (!src) return;
+  const p = clone(src); p.mode = p.mode === 'day' ? 'day' : 'session';
+  if (p.mode === 'day' && !plus) return openPlus();
+  drafts[mode] = plan; mode = p.mode; weekView = false; pref.set('mode', mode); plan = p; saveDraft(); renderPlan(); scrollTo({ top: 0, behavior: 'smooth' });
+}
+$('savedList').addEventListener('click', async e => {
+  const o = e.target.closest('[data-open]'), d = e.target.closest('[data-delp]');
+  if (o) openSaved(o.dataset.open);
+  if (d) {
+    const p = saved.find(x => x.id === d.dataset.delp);
+    if (await ask(`Delete "${p.name || 'Untitled plan'}"?`, { yes: 'Delete' })) { saved = saved.filter(x => x !== p); set(K('plans'), saved); renderSaved(); }
+  }
+});
+$('saveBtn').addEventListener('click', async () => {
+  if (!plus && saved.length >= 3 && !saved.some(p => p.id === plan.id)) return openPlus();
+  if (!plan.name.trim()) {
+    const n = await ask('Name this plan', { yes: 'Save', input: '' }); if (!n) return;
+    plan.name = n; $('planName').value = n;
+  }
+  const copy = clone(plan), i = saved.findIndex(p => p.id === plan.id);
+  if (i >= 0) saved[i] = copy; else saved.unshift(copy);
+  set(K('plans'), saved); saveDraft(); renderSaved();
+  const b = $('saveBtn'), t = b.textContent; b.textContent = '✓ Saved'; setTimeout(() => b.textContent = t, 1400);
+});
+$('newBtn').addEventListener('click', async () => {
+  if (!await ask('Start a new plan? Unsaved changes to this one will be cleared.', { yes: 'New plan' })) return;
+  plan = mode === 'day' ? blankDay() : blankSession(); plan.items = []; saveDraft(); renderPlan(); $('planName').focus();
+});
+
+/* ---------- picture dialog ---------- */
+let picTarget = null;
+function openPic(it) {
+  picTarget = it;
+  $('myPicsWrap').hidden = !pics.length;
+  $('myPics').innerHTML = pics.map((s, i) => `<button type="button" data-pi="${i}" aria-label="Your picture ${i + 1}"><img src="${s}" alt=""><span class="x" data-rm="${i}" role="button" aria-label="Remove picture">✕</span></button>`).join('');
+  if (!$('picDlg').open) $('picDlg').showModal();
+}
+$('emojiGrid').innerHTML = EMOJI.map(e => `<button type="button" data-e="${e}">${e}</button>`).join('');
+function choosePic(pic) { if (picTarget) { picTarget.pic = pic; saveDraft(); renderPlan(); } $('picDlg').close(); }
+$('emojiGrid').addEventListener('click', e => { const b = e.target.closest('[data-e]'); if (b) choosePic({ e: b.dataset.e }); });
+$('myPics').addEventListener('click', e => {
+  const rm = e.target.closest('[data-rm]');
+  if (rm) { e.stopPropagation(); pics.splice(+rm.dataset.rm, 1); set(K('pics'), pics); openPic(picTarget); return; }
+  const b = e.target.closest('[data-pi]'); if (b) choosePic({ src: pics[+b.dataset.pi] });
+});
+$('picNone').addEventListener('click', () => choosePic(null));
+$('picClose').addEventListener('click', () => $('picDlg').close());
+$('picDlg').addEventListener('click', e => { if (e.target === $('picDlg')) $('picDlg').close(); });
+$('picFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const src = await shrink(f);
+    pics = [src, ...pics.filter(p => p !== src)].slice(0, 80); set(K('pics'), pics);
+    choosePic({ src });
+  } catch (err) { $('picDlg').close(); ask("That picture couldn't be opened. Try a different photo.", { no: null }); }
+});
+// Square-crop and shrink photos so many fit on the device.
+function shrink(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const S = 320, s = Math.min(img.naturalWidth, img.naturalHeight);
+      const c = document.createElement('canvas'); c.width = c.height = S;
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, S, S);
+      g.drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, S, S);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', .85));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(); };
+    img.src = url;
+  });
+}
+
+/* ---------- clock drawing ---------- */
+// Angles run clockwise from 12. A session uses the minute hand (the face is 60 minutes);
+// a day uses the hour hand (the face is 12 hours). Each wedge sits exactly where that hand will sweep.
+const NS = 'http://www.w3.org/2000/svg';
+const R_WEDGE = 80, R_PIC = 52;
+const pt = (deg, r) => { const a = deg * Math.PI / 180; return [r * Math.sin(a), -r * Math.cos(a)]; };
+function angleAt(ms, scale) {
+  const d = new Date(ms), m = d.getMinutes() + d.getSeconds() / 60 + d.getMilliseconds() / 60000;
+  return scale === 'hour' ? ((d.getHours() % 12) * 60 + m) * .5 : m * 6;
+}
+const degPerMin = scale => scale === 'hour' ? .5 : 6;
+const periodMs = scale => (scale === 'hour' ? 720 : 60) * 60000;
+function arcPath(a0, sweep, r) {
+  if (sweep <= 0) return '';
+  if (sweep >= 359.99) return `M${-r},0 A${r},${r} 0 1 1 ${r},0 A${r},${r} 0 1 1 ${-r},0 Z`;
+  const [x0, y0] = pt(a0, r), [x1, y1] = pt(a0 + sweep, r);
+  return `M0,0 L${x0.toFixed(2)},${y0.toFixed(2)} A${r},${r} 0 ${sweep > 180 ? 1 : 0} 1 ${x1.toFixed(2)},${y1.toFixed(2)} Z`;
+}
+function withTimes(items, startMs) {
+  let t = startMs;
+  return items.map(it => { const s = t; t += it.dur * 60000; return { ...it, s, e: t }; });
+}
+// Which 12 hours (or 60 minutes) the face shows. Plans longer than the face follow "now".
+function windowStart(o, now) {
+  const P = periodMs(o.scale), end = o.startMs + o.sessionLen * 60000;
+  if (end - o.startMs <= P || o.preview) return o.startMs;
+  const back = o.scale === 'hour' ? 2 * 3600000 : 10 * 60000;
+  const step = o.scale === 'hour' ? 15 * 60000 : 60000;
+  let ws = Math.floor((now - back) / step) * step;
+  return Math.max(o.startMs, Math.min(ws, end - P));
+}
+function el(tag, attrs, parent) {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(n);
+  return n;
+}
+function drawClock(svg, o) {
+  const now = Date.now();
+  o.ws = windowStart(o, now);
+  const we = o.ws + periodMs(o.scale), dpm = degPerMin(o.scale);
+  svg.innerHTML = '';
+  el('circle', { class: 'face', r: 100 }, svg);
+  const defs = el('defs', {}, svg);
+  const shown = o.items.map(it => ({ ...it, s: Math.max(it.s, o.ws), e: Math.min(it.e, we) })).filter(it => it.e > it.s && !it.gap);
+  shown.forEach(it => el('path', { class: 'wedge', d: arcPath(angleAt(it.s, o.scale), (it.e - it.s) / 60000 * dpm, R_WEDGE), fill: it.color }, svg));
+  el('path', { class: 'elapsed', d: '', 'data-role': 'elapsed' }, svg);
+  // pictures sit on top of the shading so they stay clear
+  shown.forEach((it, i) => {
+    if (!it.pic) return;
+    const a0 = angleAt(it.s, o.scale), sw = (it.e - it.s) / 60000 * dpm, mid = a0 + sw / 2;
+    const room = Math.min(sw >= 359 ? 60 : 2 * R_PIC * Math.sin(Math.min(sw, 180) * Math.PI / 360) * .82, 34);
+    if (room < 11) return;
+    const [x, y] = pt(mid, sw >= 359 ? 0 : R_PIC), r = room / 2;
+    el('circle', { class: 'picbg', cx: x, cy: y, r: r + 1.5, stroke: it.color }, svg);
+    if (it.pic.src) {
+      const cid = svg.id + 'c' + i;
+      const cp = el('clipPath', { id: cid }, defs); el('circle', { cx: x, cy: y, r }, cp);
+      el('image', { href: it.pic.src, x: x - r, y: y - r, width: 2 * r, height: 2 * r, 'clip-path': `url(#${cid})`, preserveAspectRatio: 'xMidYMid slice' }, svg);
+    } else if (it.pic.e) {
+      el('text', { x, y: y + r * .08, 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': r * 1.35 }, svg).textContent = it.pic.e;
+    }
+  });
+  const [sx, sy] = pt(angleAt(Math.max(o.startMs, o.ws), o.scale), 100);
+  el('line', { class: 'startmark', x1: 0, y1: 0, x2: sx.toFixed(2), y2: sy.toFixed(2), opacity: .35 }, svg);
+  for (let m = 0; m < 60; m++) {
+    const big = m % 5 === 0, [x1, y1] = pt(m * 6, big ? 81 : 82.5), [x2, y2] = pt(m * 6, 86);
+    el('line', { class: 'tk', x1, y1, x2, y2, 'stroke-width': big ? 2.4 : 1 }, svg);
+  }
+  for (let h = 1; h <= 12; h++) { const [x, y] = pt(h * 30, 93); el('text', { class: 'num', x, y }, svg).textContent = h; }
+  const day = o.scale === 'hour';
+  el('line', { class: 'hand', 'data-role': 'hour', x1: 0, y1: 8, x2: 0, y2: day ? -60 : -46, 'stroke-width': day ? 7 : 6 }, svg);
+  el('line', { class: 'hand' + (day ? ' soft' : ''), 'data-role': 'min', x1: 0, y1: 10, x2: 0, y2: -74, 'stroke-width': day ? 2.5 : 4.5 }, svg);
+  el('line', { class: 'sec', 'data-role': 'sec', x1: 0, y1: 14, x2: 0, y2: -80, 'stroke-width': 1.6 }, svg);
+  el('circle', { class: 'cap', r: 4.5 }, svg);
+  svg._o = o;
+  tickClock(svg, new Date());
+}
+function tickClock(svg, now) {
+  const o = svg._o; if (!o) return;
+  const ms = now.getTime();
+  if (windowStart(o, ms) !== o.ws) return drawClock(svg, o);
+  const h = now.getHours() % 12, m = now.getMinutes(), s = now.getSeconds() + now.getMilliseconds() / 1000;
+  svg.querySelector('[data-role=hour]').setAttribute('transform', `rotate(${(h + m / 60 + s / 3600) * 30})`);
+  svg.querySelector('[data-role=min]').setAttribute('transform', `rotate(${(m + s / 60) * 6})`);
+  const sec = svg.querySelector('[data-role=sec]');
+  sec.setAttribute('transform', `rotate(${Math.floor(s) * 6})`);
+  sec.style.display = o.showSec ? '' : 'none';
+  const end = Math.min(o.startMs + o.sessionLen * 60000, o.ws + periodMs(o.scale)), from = Math.max(o.startMs, o.ws);
+  const gone = o.preview ? 0 : Math.max(0, Math.min(ms, end) - from);
+  svg.querySelector('[data-role=elapsed]').setAttribute('d', arcPath(angleAt(from, o.scale), gone / 60000 * degPerMin(o.scale), R_WEDGE + .5));
+}
+
+/* ---------- running ---------- */
+let lastKey = null, warned = null, timer = null, manual = false, lastInfo = null, lastRun = null;
+function logEv(text) { if (run) (run.log = run.log || []).push({ t: Date.now(), text }); }
+
+/* ---------- summary for treatment notes ---------- */
+function buildSummary(r, upTo) {
+  const end = r.startMs + r.sessionLen * 60000, now = Math.min(upTo ?? Date.now(), end);
+  const its = withTimes(r.items, r.startMs), lines = [];
+  lines.push(`${r.name || (r.mode === 'day' ? 'Day plan' : 'Session')}`);
+  lines.push(`Date: ${new Date(r.startMs).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}`);
+  lines.push(`Time: ${fmt(r.startMs)} to ${fmt(end)} (${fmtDur(r.sessionLen)} planned)`);
+  const endedEarly = r.endedAt && r.endedAt < end - 30000;
+  if (endedEarly) lines.push(`Ended at ${fmt(r.endedAt)}`);
+  lines.push('', 'Activities:');
+  let n = 0;
+  its.forEach(it => {
+    if (it.gap) { if (it.e - it.s >= 30000) lines.push(`   Free time: ${fmt(it.s)} to ${fmt(it.e)} (${fmtDur((it.e - it.s) / 60000)})`); return; }
+    n++;
+    const state = it.e <= now ? '' : it.s <= now ? (endedEarly ? ` (stopped at ${fmt(r.endedAt)} when the session ended)` : ' (in progress)') : (endedEarly ? ' (not reached)' : ' (planned, not reached)');
+    lines.push(`${n}. ${it.name || 'Activity'}: ${fmt(it.s)} to ${fmt(it.e)} (${fmtDur(it.dur)})${state}`);
+  });
+  const lastEnd = its.length ? its[its.length - 1].e : r.startMs, free = (end - lastEnd) / 60000;
+  if (free >= .5) lines.push(`   Free time at the end: ${fmtDur(free)}`);
+  if (r.log && r.log.length) { lines.push('', 'Check-ins and changes:'); r.log.forEach(l => lines.push(`- ${fmt(l.t)}: ${l.text}`)); }
+  return lines.join('\n');
+}
+function openSummary(r) {
+  if (!r) return;
+  $('sumText').value = buildSummary(r, r.endedAt); $('sumStatus').textContent = '';
+  $('sumDlg').showModal();
+}
+function renderLast() {
+  $('lastBox').hidden = !lastRun || editing;
+  if (lastRun) $('lastInfo').textContent = `${lastRun.name || 'Untitled plan'} · ${new Date(lastRun.startMs).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}, ${fmt(lastRun.startMs)}`;
+}
+function startRun(startMs) {
+  unlockAudio();
+  run = { mode: plan.mode, name: plan.name, sessionLen: planLen(plan), startMs, items: clone(plan.items) };
+  set('run', run); lastKey = null; warned = null;
+  showRun();
+}
+$('startNow').addEventListener('click', () => startRun(Date.now()));
+$('startAtBtn').addEventListener('click', async () => {
+  unlockAudio();
+  const d = timeToday($('startAt').value);
+  if (!d) { $('startAt').focus(); return; }
+  if (Date.now() - d.getTime() > planLen(plan) * 60000 && !await ask(`A session starting at ${fmt(d)} would already be over. Start it anyway?`, { yes: 'Start anyway' })) return;
+  startRun(d.getTime());
+});
+$('startDay').addEventListener('click', async () => {
+  unlockAudio();
+  const d = timeToday(plan.dayStart);
+  if (Date.now() - d.getTime() > planLen(plan) * 60000 && !await ask(`This day would already be over. Start it anyway?`, { yes: 'Start anyway' })) return;
+  startRun(d.getTime());
+});
+$('startDayNow').addEventListener('click', () => startRun(Date.now()));
+
+const moreAmt = () => run && run.mode === 'day' ? 15 : 5;
+function showRun() {
+  editing = false;
+  $('planView').hidden = true; $('aboutView').hidden = true; $('runView').hidden = false;
+  setTab('main');
+  $('moreBtn').textContent = '＋ More time';
+  $('ciMoreLabel').textContent = 'I need more time';
+  scrollTo(0, 0);
+  redrawRun();
+  clearInterval(timer); timer = setInterval(tick, 250); tick();
+  keepAwake(true);
+}
+function showPlan() {
+  clearInterval(timer); timer = null; keepAwake(false);
+  $('runView').hidden = true; $('aboutView').hidden = true; $('planView').hidden = false;
+  renderPlan();
+}
+function redrawRun() {
+  manual = true;
+  Notes.schedule();
+  drawClock($('runClock'), { items: withTimes(run.items, run.startMs), startMs: run.startMs, sessionLen: run.sessionLen, scale: run.mode === 'day' ? 'hour' : 'min', showSec: $('optSec').checked });
+}
+function status(now) {
+  const its = withTimes(run.items, run.startMs), end = run.startMs + run.sessionLen * 60000;
+  if (now < run.startMs) return { phase: 'before', its, end };
+  const idx = its.findIndex(i => now >= i.s && now < i.e);
+  if (idx >= 0) return { phase: 'on', idx, its, end };
+  if (now < end) return { phase: 'free', its, end, idx: its.length };
+  return { phase: 'done', its, end, idx: its.length };
+}
+function tick() {
+  if (!run) return;
+  const nowD = new Date(), now = nowD.getTime();
+  const svg = $('runClock'); if (svg._o) svg._o.showSec = $('optSec').checked;
+  tickClock(svg, nowD);
+  $('digital').hidden = !$('optDigital').checked;
+  $('digital').textContent = fmt(nowD);
+  const st = status(now), key = st.phase + ':' + (st.idx ?? '');
+  if (lastKey !== null && key !== lastKey) {
+    // Time ran out on its own (not "Done, next!" or another change we made): check in before moving on.
+    if (!manual && lastInfo && lastInfo.phase === 'on' && (st.phase === 'on' || st.phase === 'free')) timeUp(lastInfo.id, st);
+    else transition(st);
+  }
+  lastKey = key; manual = false;
+  lastInfo = { phase: st.phase, id: st.phase === 'on' ? st.its[st.idx].id : null };
+  renderCards(st, now);
+}
+const fallbackPic = '<span class="emo">⭐</span>';
+const put = (el, html) => { if (el._h !== html) { el._h = html; el.innerHTML = html; } };
+function renderCards(st, now) {
+  const nc = $('nowCard'), xc = $('nextCard');
+  let cur = null, nxt = null;
+  if (st.phase === 'before') {
+    nxt = st.its[0];
+    nc.style.removeProperty('--c');
+    put(nc, `<div class="pic"><span class="emo">⏳</span></div><div><p class="label">Starting soon</p><h2>Starts at ${fmt(run.startMs)}</h2><p class="left">in ${minsText(run.startMs - now)}</p></div>`);
+  } else if (st.phase === 'on') {
+    cur = st.its[st.idx]; nxt = st.its[st.idx + 1] || null;
+    const left = cur.e - now, frac = 1 - left / (cur.e - cur.s);
+    nc.style.setProperty('--c', cur.color);
+    put(nc, `<div class="pic">${picHTML(cur.pic) || fallbackPic}</div><div><p class="label">Now</p><h2>${esc(cur.name || 'Activity')}</h2><p class="left">${minsText(left)} left</p><div class="bar"><i style="width:${(frac * 100).toFixed(1)}%"></i></div></div>`);
+  } else if (st.phase === 'free') {
+    nc.style.setProperty('--c', 'var(--line)');
+    const extra = st.end - now;
+    put(nc, `<div class="pic"><span class="emo">🎉</span></div><div><p class="label">Extra time</p><h2>${minsText(extra)} left!</h2><p class="left">${extra >= 60000 ? 'What should we do with it?' : 'Almost done.'}</p>${extra >= 60000 ? '<div class="controls" style="margin-top:12px"><button class="btn primary" type="button" data-act="add">＋ Add an activity</button><span class="note" style="align-self:center">or keep it as extra play time</span></div>' : ''}</div>`);
+  } else {
+    nc.style.removeProperty('--c');
+    put(nc, `<div class="celebrate"><div class="big">🌟</div><h2>All done!</h2><p class="left">Great work today. How did the time feel?</p><div style="margin-top:14px"><button class="btn" type="button" data-act="sum">📋 Copy summary for notes</button> <button class="btn primary" type="button" data-act="back">Back to planning</button></div></div>`);
+  }
+  const warnMs = (run.mode === 'day' ? 10 : 2) * 60000;
+  if (nxt) {
+    xc.hidden = false; xc.style.setProperty('--c', nxt.color);
+    const warn = cur && cur.e - now <= warnMs;
+    xc.classList.toggle('warn', !!warn);
+    xc.innerHTML = `<div class="pic">${picHTML(nxt.pic) || fallbackPic}</div><div><p class="label">${warn ? 'Almost time for' : 'Next'}</p><b>${esc(nxt.name || 'Activity')}</b><span class="note">at ${fmt(nxt.s)}</span></div>`;
+    if (warn && warned !== nxt.id) { warned = nxt.id; if ($('optSound').checked) beep([660], .25, .08); }
+  } else if (st.phase === 'on') {
+    xc.hidden = false; xc.classList.remove('warn'); xc.style.setProperty('--c', 'var(--line)');
+    xc.innerHTML = `<div class="pic"><span class="emo">🏁</span></div><div><p class="label">Then</p><b>${st.end - cur.e > 30000 ? 'Free time' : 'All done!'}</b><span class="note">at ${fmt(cur.e)}</span></div>`;
+  } else xc.hidden = true;
+  $('strip').innerHTML = st.its.map((it, i) => it.gap ? '' : `<div class="stripitem ${(st.idx ?? -1) > i ? 'done' : ''} ${st.phase === 'on' && st.idx === i ? 'cur' : ''}" style="--c:${it.color}"><div class="pic">${picHTML(it.pic) || fallbackPic}</div><span>${esc(it.name || 'Activity')}</span><span class="note" style="font-size:.72rem">${fmtDur(it.dur)}</span></div>`).join('');
+  $('doneBtn').disabled = st.phase !== 'on';
+  $('moreBtn').disabled = st.phase !== 'on' || moreRoom(st) < 1;
+  $('addBtnRun').disabled = freeAvail(now) < 1;
+  $('changeBtn').disabled = st.phase === 'done';
+}
+const buzz = () => { const h = plug('Haptics'); if (h) h.impact({ style: 'MEDIUM' }).catch(() => {}); };
+// In the apps, scheduled notifications cover changes while the screen is off or the app is in the background.
+const Notes = {
+  async ensure() {
+    const ln = plug('LocalNotifications'); if (!ln) return false;
+    try {
+      let p = await ln.checkPermissions();
+      if (p.display !== 'granted' && p.display !== 'denied') p = await ln.requestPermissions();
+      return p.display === 'granted'; // a boolean, never the plugin itself (plugin objects must not be awaited)
+    } catch (e) { return false; }
+  },
+  async cancel() {
+    const ln = plug('LocalNotifications'); if (!ln) return;
+    try { const p = await ln.getPending(); if (p.notifications.length) await ln.cancel({ notifications: p.notifications.map(n => ({ id: n.id })) }); } catch (e) {}
+  },
+  async schedule() {
+    if (!plug('LocalNotifications') || !run) return;
+    await Notes.cancel();
+    if (!(await Notes.ensure()) || !run) return;
+    const ln = plug('LocalNotifications');
+    const now = Date.now(), end = run.startMs + run.sessionLen * 60000;
+    const its = withTimes(run.items, run.startMs).filter(i => !i.gap), list = [];
+    its.forEach((it, i) => {
+      if (it.e > now + 5000 && it.e < end - 1000) list.push({
+        id: 7000 + i, title: `Time's up for ${it.name || 'this activity'}`,
+        body: its[i + 1] ? `Check in together. Next up: ${its[i + 1].name || 'the next activity'}.` : 'Check in together.',
+        schedule: { at: new Date(it.e), allowWhileIdle: true }
+      });
+    });
+    if (end > now + 5000) list.push({ id: 7999, title: 'All done!', body: 'Great work today.', schedule: { at: new Date(end), allowWhileIdle: true } });
+    try { if (list.length) await ln.schedule({ notifications: list.slice(0, 60) }); } catch (e) {}
+  }
+};
+function transition(st) {
+  buzz();
+  const c = st.phase === 'on' ? st.its[st.idx].color : '#F2B705';
+  const f = $('flash'); f.style.setProperty('--c', c); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
+  if ($('optSound').checked) st.phase === 'done' ? beep([523, 659, 784, 1047], .3, .16) : beep([784, 1047], .5, .22);
+  // A recorded voice for the new activity plays instead of the spoken announcement.
+  const v = st.phase === 'on' && plus ? st.its[st.idx].voice : null;
+  if (v) { setTimeout(() => playVoice(v), $('optSound').checked ? 700 : 0); return; }
+  if ($('optSpeak').checked && 'speechSynthesis' in window) {
+    const words = st.phase === 'on' ? `Time for ${st.its[st.idx].name || 'the next activity'}` : st.phase === 'free' ? 'Free time!' : st.phase === 'done' ? 'All done! Great work.' : '';
+    if (words) { try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(words); u.rate = .95; speechSynthesis.speak(u); } catch (e) {} }
+  }
+}
+// "Done, next!" ends the current activity now; the rest slide earlier and the leftover becomes free time.
+function doneNow() {
+  const now = Date.now(), st = status(now); if (st.phase !== 'on') return;
+  const cur = run.items[st.idx];
+  const spent = (now - st.its[st.idx].s) / 60000;
+  logEv(spent < .5 ? `Ended ${cur.name || 'activity'} right away` : `Finished ${cur.name || 'activity'} early: ${fmtDur(spent)} of ${fmtDur(cur.dur)} planned`);
+  cur.dur = Math.max(0, (now - st.its[st.idx].s) / 60000);
+  if (cur.dur < 0.05) run.items.splice(st.idx, 1);
+  set('run', run); redrawRun(); tick();
+}
+// "More time" keeps the end time: it uses free time first, then trims the last activities.
+const minDur = () => run.mode === 'day' ? 5 : 1;
+// Minutes that could be given to activity idx: free time, plus what later activities can give and still keep a minimum.
+function roomAfter(idx) {
+  const free = Math.max(0, run.sessionLen - sum(run.items));
+  return free + run.items.slice(idx + 1).filter(i => !i.gap).reduce((a, i) => a + Math.max(0, i.dur - minDur()), 0);
+}
+// Same, minus any time since the activity ended (when the time-up check-in asks for more).
+function roomFor(idx, now = Date.now()) {
+  const its = withTimes(run.items, run.startMs);
+  return roomAfter(idx) - Math.max(0, (now - its[idx].e) / 60000);
+}
+function moreRoom(st) { return roomFor(st.idx); }
+// Take T minutes from these activities as evenly as possible, never going under the minimum.
+function takeEvenly(items, T, min) {
+  let left = T, pool = items.filter(i => i.dur > min + 1e-9);
+  while (left > 1e-9 && pool.length) {
+    const share = left / pool.length, next = [];
+    for (const it of pool) {
+      const take = Math.min(it.dur - min, share); it.dur -= take; left -= take;
+      if (it.dur > min + 1e-9) next.push(it);
+    }
+    pool = next;
+  }
+}
+function moreTime(amt, targetId) {
+  const now = Date.now(), st = status(now);
+  const idx = targetId ? run.items.findIndex(i => i.id === targetId) : (st.phase === 'on' ? st.idx : -1);
+  if (idx < 0) return;
+  const its = withTimes(run.items, run.startMs);
+  const catchUp = Math.max(0, (now - its[idx].e) / 60000); // the activity already ended: bring it back to now first
+  const add = Math.min(catchUp + (amt || moreAmt()), roomAfter(idx)); if (add <= 0) return;
+  run.items[idx].dur += add;
+  logEv(`More time for ${run.items[idx].name || 'activity'}: +${fmtDur(Math.max(1, add - catchUp))}${targetId ? ' (asked when its time was up)' : ''}`);
+  const over = sum(run.items) - run.sessionLen; // the end time stays put, so later activities share the cost
+  if (over > 1e-9) takeEvenly(run.items.slice(idx + 1).filter(i => !i.gap), over, minDur());
+  set('run', run); redrawRun();
+  // Going back to an activity that just ended is a continuation, not a new start: no announcement.
+  const s2 = status(Date.now());
+  lastKey = s2.phase + ':' + (s2.idx ?? ''); lastInfo = { phase: s2.phase, id: s2.phase === 'on' ? s2.its[s2.idx].id : null };
+  tick();
+}
+$('doneBtn').addEventListener('click', doneNow);
+$('moreBtn').addEventListener('click', () => openMore());
+let moreTarget = null, moreApplied = false;
+function openMore(targetId) {
+  const st = status(Date.now());
+  const idx = targetId ? run.items.findIndex(i => i.id === targetId) : (st.phase === 'on' ? st.idx : -1);
+  if (idx < 0) return;
+  moreTarget = targetId || null; moreApplied = false;
+  const room = Math.floor(roomFor(idx) + 1e-6);
+  const amts = run.mode === 'day' ? [5, 10, 15, 30, 60] : [1, 2, 5, 10, 15];
+  $('moreChips').innerHTML = amts.map(a => `<button type="button" class="chip" data-more="${a}" ${a > room ? 'disabled' : ''}>＋ ${fmtDur(a)}</button>`).join('');
+  $('moreCustom').max = room; $('moreCustom').value = '';
+  $('moreNote').textContent = room > 0 ? `Up to ${fmtDur(room)} can be added. The end time stays the same, so the time comes from any free time first, then evenly from every activity still to come.` : 'There is no time left to add.';
+  $('moreDlg').showModal();
+}
+$('moreChips').addEventListener('click', e => { const b = e.target.closest('[data-more]'); if (b && !b.disabled) { moreApplied = true; $('moreDlg').close(); moreTime(+b.dataset.more, moreTarget); } });
+$('moreForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = Math.round(+$('moreCustom').value);
+  if (!(v > 0)) { $('moreCustom').focus(); return; }
+  moreApplied = true; $('moreDlg').close(); moreTime(v, moreTarget);
+});
+$('moreClose').addEventListener('click', () => $('moreDlg').close());
+// Asked for more time at a time-up check-in, then cancelled: move on to the next activity after all.
+$('moreDlg').addEventListener('close', () => { if (moreTarget && !moreApplied) { logReady(); announceNow(); } moreTarget = null; });
+
+/* add an activity into free time (after finishing early, or leftover at the end) */
+function freeAvail(now = Date.now()) {
+  if (!run) return 0;
+  const st = status(now); if (st.phase !== 'on' && st.phase !== 'free') return 0;
+  const lastEnd = st.its.length ? st.its[st.its.length - 1].e : run.startMs;
+  return Math.max(0, (st.end - Math.max(lastEnd, now)) / 60000);
+}
+function openAdd() {
+  const avail = Math.floor(freeAvail() + 1e-6); if (avail < 1) return;
+  $('addNote').textContent = `${fmtDur(avail)} free. Pick something together, or type your own.`;
+  $('addQuick').innerHTML = QUICK[run.mode].map(([n, e]) => `<button type="button" class="chip" data-n="${esc(n)}" data-e="${e}"><span aria-hidden="true">${e}</span>${esc(n)}</button>`).join('');
+  $('addMins').max = avail; $('addMins').value = avail; $('addName').value = '';
+  $('addDlg').showModal();
+}
+function addActivity(name, pic) {
+  const now = Date.now(), st = status(now); if (st.phase !== 'on' && st.phase !== 'free') return;
+  const lastEnd = st.its.length ? st.its[st.its.length - 1].e : run.startMs;
+  const avail = (st.end - Math.max(lastEnd, now)) / 60000; if (avail < .5) return;
+  const want = Math.round(+$('addMins').value) || avail;
+  // Free time that already went by stays free (a gap with no wedge), so the new activity starts right now.
+  if (now > lastEnd) run.items.push({ id: uid(), gap: true, name: '', dur: (now - lastEnd) / 60000, color: 'transparent', pic: null });
+  const color = COLORS.find(c => !run.items.some(i => i.color === c)) || COLORS[run.items.length % COLORS.length];
+  run.items.push({ id: uid(), name, dur: Math.min(Math.max(1, want), avail), color, pic });
+  logEv(`Added ${name} (${fmtDur(run.items[run.items.length - 1].dur)})`);
+  set('run', run); redrawRun(); tick();
+}
+$('addQuick').addEventListener('click', e => { const b = e.target.closest('[data-n]'); if (b) { addActivity(b.dataset.n, { e: b.dataset.e }); $('addDlg').close(); } });
+$('addForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const n = $('addName').value.trim(); if (!n) { $('addName').focus(); return; }
+  addActivity(n, { e: '⭐' }); $('addDlg').close();
+});
+$('addClose').addEventListener('click', () => $('addDlg').close());
+$('addBtnRun').addEventListener('click', openAdd);
+$('nowCard').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  if (b.dataset.act === 'add') openAdd();
+  if (b.dataset.act === 'back') endRun();
+  if (b.dataset.act === 'sum') openSummary(run);
+});
+
+// Change the plan while the clock keeps running; the start time stays the same.
+function enterEdit() {
+  if (!run) return;
+  stash = { mode, plan };
+  editing = true; mode = run.mode;
+  plan = { id: 'live', mode: run.mode, name: run.name, items: clone(run.items), sessionLen: run.sessionLen };
+  if (run.mode === 'day') {
+    const s = new Date(run.startMs), e = new Date(run.startMs + run.sessionLen * 60000), p2 = n => String(n).padStart(2, '0');
+    plan.dayStart = `${p2(s.getHours())}:${p2(s.getMinutes())}`; plan.dayEnd = `${p2(e.getHours())}:${p2(e.getMinutes())}`;
+  }
+  clearInterval(timer); timer = null;
+  $('runView').hidden = true; $('planView').hidden = false;
+  renderPlan(); scrollTo(0, 0);
+}
+$('changeBtn').addEventListener('click', enterEdit);
+$('sumBtn').addEventListener('click', () => openSummary(run));
+$('lastSumBtn').addEventListener('click', () => openSummary(lastRun));
+$('sumClose').addEventListener('click', () => $('sumDlg').close());
+$('sumCopy').addEventListener('click', () => {
+  const t = $('sumText');
+  const fallback = () => {
+    t.focus(); t.select(); let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    $('sumStatus').textContent = ok ? 'Copied. Paste it into your notes.' : 'The text is selected. Use your keyboard or menu to copy it.';
+  };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t.value).then(() => { $('sumStatus').textContent = 'Copied. Paste it into your notes.'; }, fallback);
+    else fallback();
+  } catch (e) { fallback(); }
+});
+$('backToClock').addEventListener('click', () => {
+  run.items = clone(plan.items); run.name = plan.name; run.sessionLen = planLen(plan);
+  logEv('Changed the plan together');
+  set('run', run);
+  mode = stash.mode; plan = stash.plan; stash = null;
+  showRun();
+});
+
+/* check-in */
+let ciMode = 'manual', ciPrev = null;
+function setCi(title, doneLabel, showGood) {
+  $('ciTitle').textContent = title; $('ciDoneLabel').textContent = doneLabel;
+  $('ciDlg').querySelector('[data-ci=good]').hidden = !showGood;
+}
+function announceNow() { if (run) transition(status(Date.now())); }
+function timeUp(prevId, st) {
+  const idx = run.items.findIndex(i => i.id === prevId); if (idx < 0) return transition(st);
+  const prev = run.items[idx];
+  ciMode = 'timeup'; ciPrev = prevId; buzz();
+  if ($('optSound').checked) beep([660, 880], .3, .18);
+  const nextName = st.phase === 'on' ? (st.its[st.idx].name || 'the next activity') : 'extra time';
+  setCi(`Time's up for ${prev.name || 'this activity'}! How's it going?`, `Ready for ${nextName}`, false);
+  $('ciDlg').querySelector('[data-ci=more]').disabled = roomFor(idx) < 1;
+  $('ciDlg').querySelector('[data-ci=done]').disabled = false;
+  if (!$('ciDlg').open) $('ciDlg').showModal();
+}
+$('checkBtn').addEventListener('click', () => {
+  const st = status(Date.now());
+  ciMode = 'manual'; setCi("How's it going?", "I'm all done", true);
+  $('ciDlg').querySelector('[data-ci=more]').disabled = st.phase !== 'on' || moreRoom(st) < 1;
+  $('ciDlg').querySelector('[data-ci=done]').disabled = st.phase !== 'on';
+  $('ciDlg').showModal();
+});
+$('ciDlg').addEventListener('click', e => {
+  const b = e.target.closest('[data-ci]');
+  if (!b) { if (e.target === $('ciDlg')) $('ciDlg').close(); return; }
+  const c = b.dataset.ci, m = ciMode;
+  ciMode = 'closing'; $('ciDlg').close();
+  if (m === 'timeup') { if (c === 'more') openMore(ciPrev); else if (c === 'change') enterEdit(); else { logReady(); announceNow(); } }
+  else { if (c === 'more') openMore(); else if (c === 'done') doneNow(); else if (c === 'change') enterEdit(); else if (c === 'good') { logEv('Check-in: going great'); set('run', run); } }
+});
+// Closing a time-up check-in any other way (Esc, tapping outside) means "ready": announce the next activity.
+$('ciDlg').addEventListener('close', () => { if (ciMode === 'timeup') { logReady(); announceNow(); } ciMode = 'manual'; });
+function logReady() {
+  if (!run) return;
+  const p = run.items.find(i => i.id === ciPrev), st = status(Date.now());
+  logEv(`Check-in when ${p ? p.name || 'activity' : 'an activity'} ended: ready for ${st.phase === 'on' ? st.its[st.idx].name || 'the next activity' : 'extra time'}`);
+  set('run', run);
+}
+
+function keepLast(r, endedAt) {
+  // Keep a light copy of the finished run (no photos or voices) for the "Last session" notes summary.
+  lastRun = { ...clone(r), endedAt, items: r.items.map(({ pic, voice, ...rest }) => rest) };
+  set('lastRun', lastRun);
+}
+function endRun() {
+  Notes.cancel();
+  if (run) keepLast(run, Math.min(Date.now(), run.startMs + run.sessionLen * 60000));
+  run = null; set('run', null);
+  if (editing) { editing = false; mode = stash.mode; plan = stash.plan; stash = null; }
+  if (document.fullscreenElement) document.exitFullscreen?.().catch?.(() => {});
+  showPlan();
+}
+$('endBtn').addEventListener('click', async () => { if (await ask('End this and go back to planning?', { yes: 'End' })) endRun(); });
+$('fsBtn').addEventListener('click', () => {
+  try {
+    const d = document.documentElement;
+    if (document.fullscreenElement || document.webkitFullscreenElement) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else { const p = (d.requestFullscreen || d.webkitRequestFullscreen)?.call(d); p?.catch?.(() => {}); }
+  } catch (e) {}
+});
+if (!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen)) $('fsBtn').hidden = true;
+['optSound', 'optSpeak', 'optSec', 'optDigital'].forEach(id => {
+  $(id).checked = pref.get(id, $(id).checked);
+  $(id).addEventListener('change', () => { pref.set(id, $(id).checked); if (id === 'optSound' || id === 'optSpeak') unlockAudio(); tick(); });
+});
+
+/* ---------- pages ---------- */
+function setTab(t) {
+  $('tabMain').setAttribute('aria-current', t === 'main' ? 'page' : 'false');
+  $('tabAbout').setAttribute('aria-current', t === 'about' ? 'page' : 'false');
+}
+function showAbout() {
+  $('planView').hidden = $('runView').hidden = true; $('aboutView').hidden = false; setTab('about'); scrollTo(0, 0);
+}
+function showMain() {
+  $('aboutView').hidden = true; setTab('main');
+  if (run && !editing) { $('runView').hidden = false; $('planView').hidden = true; if (!timer) { timer = setInterval(tick, 250); } tick(); }
+  else { $('planView').hidden = false; $('runView').hidden = true; renderPlan(); }
+  scrollTo(0, 0);
+}
+$('tabAbout').addEventListener('click', showAbout);
+$('tabMain').addEventListener('click', showMain);
+$('aboutBack').addEventListener('click', showMain);
+
+/* ---------- sound (unlocked on a tap so iPads play it) ---------- */
+let ac = null;
+function unlockAudio() {
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === 'suspended') ac.resume();
+    const b = ac.createBuffer(1, 1, 22050), s = ac.createBufferSource(); s.buffer = b; s.connect(ac.destination); s.start(0);
+  } catch (e) {}
+}
+function beep(freqs, len, gap) {
+  if (!ac) return;
+  try {
+    if (ac.state === 'suspended') ac.resume();
+    freqs.forEach((f, i) => {
+      const t = ac.currentTime + i * gap, o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.25, t + .02); g.gain.exponentialRampToValueAtTime(.001, t + len + .4);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + len + .5);
+    });
+  } catch (e) {}
+}
+
+/* ---------- keep the screen on while running ---------- */
+let lock = null;
+async function keepAwake(on) {
+  try {
+    const ka = plug('KeepAwake');
+    if (ka) { await (on ? ka.keepAwake() : ka.allowSleep()); return; }
+    if (on && 'wakeLock' in navigator) lock = await navigator.wakeLock.request('screen');
+    else if (!on && lock) { await lock.release(); lock = null; }
+  } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && timer) { keepAwake(true); tick(); } });
+
+/* ---------- theme ---------- */
+function applyTheme(t) { if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; }
+applyTheme(pref.get('theme', null));
+$('themeBtn').addEventListener('click', () => {
+  const cur = document.documentElement.dataset.theme;
+  const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  const t = dark ? 'light' : 'dark'; pref.set('theme', t); applyTheme(t);
+});
+
+/* ---------- Android back button: close what's open, step back, and never quit mid-session ---------- */
+const AppPlugin = plug('App');
+if (AppPlugin) AppPlugin.addListener('backButton', () => {
+  const open = [...document.querySelectorAll('dialog[open]')].pop();
+  if (open) {
+    // Same as pressing Esc: each dialog's own cancel handling runs (a time-up check-in counts as "ready").
+    const ev = new Event('cancel', { cancelable: true });
+    open.dispatchEvent(ev);
+    if (open.open && !ev.defaultPrevented) open.close();
+    return;
+  }
+  if (!$('aboutView').hidden) { showMain(); return; }
+  AppPlugin.minimizeApp();
+});
+
+/* ---------- boot ---------- */
+Store.init();
+renderPlan(); renderSaved();
+(async () => {
+  const [r, profs, lr] = await Promise.all([get('run'), get('profiles'), get('lastRun')]);
+  if (lr && lr.startMs) lastRun = lr;
+  if (Array.isArray(profs) && profs.length) profiles = profs;
+  if (!plus || !profiles.some(x => x.id === profileId)) profileId = profiles[0].id;
+  await loadProfile();
+  // Resume something still running (after the iPad slept or the page reloaded).
+  if (r && r.startMs && Date.now() < r.startMs + r.sessionLen * 60000 + 5 * 60000) { run = { mode: 'session', ...r }; showRun(); }
+  else if (r && r.startMs) { keepLast(r, r.startMs + r.sessionLen * 60000); set('run', null); renderLast(); }
+  setInterval(() => {
+    if (timer || $('planView').hidden) return;
+    if (weekView) { tickClock($('weekClock'), new Date()); return; }
+    if (editing || (plan.mode === 'session' && !$('startAt').value && new Date().getSeconds() === 0)) renderPreview();
+    else tickClock($('previewClock'), new Date());
+  }, 1000);
+})();
+})();
+</script>
+</body>
+</html>

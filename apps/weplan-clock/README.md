@@ -1,7 +1,9 @@
 # WePlan Clock apps (iPhone, iPad, Android)
 
-The app's code lives in [`weplan-clock/`](../../weplan-clock), the same files as the website version.
-This folder wraps it with [Capacitor](https://capacitorjs.com) so it can go in the App Store and Google Play.
+The app's code lives in [`web/`](web) (`web/index.html`). This folder wraps it with [Capacitor](https://capacitorjs.com)
+so it can go in the App Store and Google Play. The website only shows a preview page (`../../weplan-clock/`);
+GitHub Pages doesn't publish `apps/` (see `_config.yml`). Opened in a browser, `web/index.html` still runs, with a
+"preview" Plus switch for testing.
 
 | | |
 |---|---|
@@ -18,7 +20,7 @@ This folder wraps it with [Capacitor](https://capacitorjs.com) so it can go in t
 - Fonts and everything else are bundled, so the app works fully offline.
 
 ## Making changes
-1. Edit `weplan-clock/index.html` (the website and both apps use it).
+1. Edit `web/index.html` (both apps use it).
 2. Push. The **WePlan Clock app check** on GitHub builds both apps to make sure nothing broke.
 3. For a new store build, start the Codemagic workflows (below).
 

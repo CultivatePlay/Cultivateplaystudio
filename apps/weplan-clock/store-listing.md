@@ -87,7 +87,7 @@ Co-create visual schedules with kids: pictures, color clock wedges & check-ins.
 **Privacy policy:** `https://cultivateplaystudio.com/weplan-clock/privacy.html`
 
 **Graphics**
-- App icon (512 × 512): `../../weplan-clock/icons/icon-512.png`
+- App icon (512 × 512): `web/icons/icon-512.png`
 - Feature graphic (1024 × 500): `store-assets/google-play/feature-graphic-1024x500.png`
 - Phone screenshots: `store-assets/google-play/phone/`
 - Tablet screenshots (7" and 10"): `store-assets/google-play/tablet/`
