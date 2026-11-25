@@ -1,0 +1,6 @@
+# GitHub Pages settings for cultivateplaystudio.com.
+# apps/ holds app source code for the App Store and Google Play, not web pages, so it isn't published.
+exclude:
+  - apps
+  - codemagic.yaml
+  - README.md

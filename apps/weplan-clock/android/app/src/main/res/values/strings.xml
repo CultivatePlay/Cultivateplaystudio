@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">WePlan Clock</string>
+    <string name="title_activity_main">WePlan Clock</string>
+    <string name="package_name">com.cultivateplay.weplanclock</string>
+    <string name="custom_url_scheme">com.cultivateplay.weplanclock</string>
+</resources>

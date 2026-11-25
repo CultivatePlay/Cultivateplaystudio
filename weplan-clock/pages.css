@@ -1,0 +1,23 @@
+/* Shared look for the WePlan Clock privacy and support pages: the studio's taped paper sheet on the blue board. */
+:root{--board:#2E5AAE;--board-ink:#FFFFFF;--sheet:#FFFFFF;--ink:#1D2333;--muted:#5D667A;--tape:rgba(238,226,178,.9);--link:#2E5AAE;--shadow:rgba(8,22,58,.32);
+  --font-display:"Gluten","Chalkboard SE","Comic Sans MS",cursive;--font-body:"Andika","Trebuchet MS",system-ui,sans-serif;color-scheme:light}
+@media (prefers-color-scheme: dark){:root{--board:#1C2925;--board-ink:#E6EEE9;--sheet:#283230;--ink:#ECF0EE;--muted:#A3AFAA;--tape:rgba(214,202,152,.34);--link:#9DC1FF;--shadow:rgba(0,0,0,.5);color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--board);color:var(--board-ink);font:17px/1.55 var(--font-body);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.page{max-width:780px;margin:0 auto;padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:24px}
+.back{color:inherit;font-weight:700;text-decoration:none}
+.back:hover{text-decoration:underline}
+.sheet{position:relative;background:var(--sheet);color:var(--ink);border-radius:3px;padding:30px 28px 26px;box-shadow:0 14px 22px -14px var(--shadow)}
+.sheet::before{content:"";position:absolute;top:-11px;left:50%;width:92px;height:22px;translate:-50% 0;rotate:-2.5deg;background:var(--tape);clip-path:polygon(3% 0,97% 0,100% 22%,96% 48%,100% 74%,97% 100%,3% 100%,0 76%,4% 50%,0 24%)}
+h1,h2{font-family:var(--font-display);font-weight:800;line-height:1.1;text-wrap:balance;margin:0}
+h1{font-size:clamp(2rem,6vw,2.6rem);margin-block:4px 10px}
+h2{font-size:1.35rem;margin-block:26px 6px}
+p,ul{margin:0 0 10px;max-width:66ch}
+ul{padding-left:1.3em}
+li{margin-bottom:4px}
+.lede{font-size:1.12rem}
+.label{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--muted);margin:0}
+.mail{font-weight:700;user-select:all}
+a{color:var(--link)}
+.foot{font-size:.9rem;opacity:.85}
+@media (max-width:520px){.sheet{padding-inline:18px}}
