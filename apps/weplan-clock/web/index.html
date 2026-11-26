@@ -249,7 +249,9 @@ dialog::backdrop{background:rgba(8,16,40,.55)}
 .picgrid button{aspect-ratio:1;border:2px solid var(--line);border-radius:12px;background:#fff;padding:0;overflow:hidden;display:grid;place-items:center;font-size:2.2rem;position:relative}
 .picgrid img{width:100%;height:100%;object-fit:cover}
 .picgrid .x{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:.8rem;display:grid;place-items:center;line-height:1}
-.dlgfoot{display:flex;justify-content:flex-end;gap:8px}
+.dlgfoot{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+.restorerow{text-align:center;margin:0}
+.restorerow .linkbtn{min-height:44px;padding:0 12px}
 #askInput{width:100%}
 .cigrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .cigrid button{border:3px solid var(--line);background:var(--label);color:var(--ink);border-radius:16px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:var(--font-display);font-weight:800;font-size:1.15rem;line-height:1.1;text-align:center}
@@ -550,7 +552,8 @@ dialog::backdrop{background:rgba(8,16,40,.55)}
     <p class="note">Planning with a child stays free: My hour, photos, picture symbols, check-ins and changing the plan.</p>
     <p class="note" id="plusMsg" role="status"></p>
     <p class="preview-note" id="plusPreviewNote">Preview: this button turns on Plus in this browser so you can try it. In the app store version it will be the $2.99 purchase.</p>
-    <div class="dlgfoot"><button class="linkbtn" type="button" id="plusRestore" hidden style="margin-right:auto">Restore purchases</button><button class="btn" type="button" id="plusClose">Not now</button><button class="btn primary" type="button" id="plusBuy">Unlock Plus (preview)</button></div>
+    <div class="dlgfoot"><button class="btn" type="button" id="plusClose">Not now</button><button class="btn primary" type="button" id="plusBuy">Unlock Plus (preview)</button></div>
+    <p class="restorerow"><button class="linkbtn" type="button" id="plusRestore" hidden>Restore purchases</button></p>
   </div>
 </dialog>
 
