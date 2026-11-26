@@ -1843,6 +1843,8 @@ $('aboutBack').addEventListener('click', showMain);
 let ac = null;
 function unlockAudio() {
   try {
+    // Newer iPhones and iPads: ask for "playback" sound so the ring/silent switch doesn't mute the chime.
+    if (navigator.audioSession) navigator.audioSession.type = 'playback';
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
     if (ac.state === 'suspended') ac.resume();
     const b = ac.createBuffer(1, 1, 22050), s = ac.createBufferSource(); s.buffer = b; s.connect(ac.destination); s.start(0);
